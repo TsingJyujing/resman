@@ -25,7 +25,7 @@ SECRET_KEY = 'xmg@8-2c-03^@3e9qrdtuu$-@j2)m^7xd(+g6u08u9vqb0ldmv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -54,7 +54,9 @@ ROOT_URLCONF = 'resman.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
