@@ -1,7 +1,41 @@
 # noinspection PyBroadException
 import json
+import os
 import traceback
+from typing import BinaryIO
+from resman.settings import DEBUG
 from django.http import HttpResponse
+
+
+class RangeFileWrapper(object):
+    def __init__(self, file_like: BinaryIO, blksize: int = 8192, offset: int = 0, length: int = None):
+        self._io = file_like
+        self._io.seek(offset, os.SEEK_SET)
+        self.remaining = length
+        self.blksize = blksize
+
+    def close(self):
+        if hasattr(self._io, 'close'):
+            self._io.close()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.remaining is None:
+            # If remaining is None, we're reading the entire file.
+            data = self._io.read(self.blksize)
+            if data:
+                return data
+            raise StopIteration()
+        else:
+            if self.remaining <= 0:
+                raise StopIteration()
+            data = self._io.read(min(self.remaining, self.blksize))
+            if not data:
+                raise StopIteration()
+            self.remaining -= len(data)
+            return data
 
 
 # noinspection PyBroadException
@@ -53,6 +87,7 @@ def response_json_error_info(func):
     :param func:
     :return:
     """
+
     def wrapper(request):
         try:
             return func(request)
@@ -72,6 +107,7 @@ def response_json(func):
     :param func:
     :return:
     """
+
     def wrapper(request):
         try:
             return get_json_response(func(request))
@@ -82,4 +118,18 @@ def response_json(func):
                 "trace_back": traceback.format_exc()
             })
 
+    return wrapper
+
+
+def debug_api(func):
+    def wrapper(request):
+        if DEBUG:
+            return func(request)
+        else:
+            resp = get_json_response({
+                "status": "error",
+                "error_info": "Can't use debug api in non-debug mode."
+            })
+            resp.status_code = 404
+            return resp
     return wrapper

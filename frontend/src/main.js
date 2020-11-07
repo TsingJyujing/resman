@@ -21,5 +21,5 @@ new Vue({
   router,
   axios,
   components: {App},
-  template: '<App/>'
+  template: '<App/>',
 })
