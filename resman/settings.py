@@ -35,7 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "novels", "images", "videos", "pages"
+    "data",
+    "pages",
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 MIDDLEWARE = [
@@ -78,14 +79,18 @@ WSGI_APPLICATION = 'resman.wsgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, "db.sqlite3"),
+    },
+}
+if "MYSQL_HOST" in os.environ:
+    DATABASES['mysql'] = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'resman',
-        'USER': 'resman',
-        # FIXME use environment variable before commit
-        'PASSWORD': '979323846',  # os.environ["DB_PASSWORD"],
-        'HOST': '127.0.0.1',
+        'USER': os.environ["MYSQL_USER"],
+        'PASSWORD': os.environ["MYSQL_PASSWORD"],
+        'HOST': os.environ["MYSQL_HOST"],
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -122,6 +127,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "frontend/dist/static")
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "frontend/dist/static")
+# ]
