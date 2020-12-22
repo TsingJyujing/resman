@@ -1,6 +1,6 @@
 import json
 from abc import abstractmethod
-
+from django.contrib import auth
 from django.db import models
 
 
