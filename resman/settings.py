@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+# Build paths inside the project like this: os.object_name.join(BASE_DIR, ...)
+from urllib.parse import urlparse, unquote
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -35,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
     "data",
     "pages",
 ]
@@ -42,9 +45,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # django-cors-headers
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # FIXME release after built 'django.middleware.csrf.CsrfViewMiddleware',
+    "django.middleware.csrf.CsrfViewMiddleware",
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -57,8 +60,6 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'templates'),
-            # FIXME Move to another place while writing docker file
-            os.path.join(BASE_DIR, 'frontend/dist'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -77,20 +78,25 @@ WSGI_APPLICATION = 'resman.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+
+mysql_config = urlparse(
+    os.environ.get("MYSQL_CONFIG", "mysql://resman:resman_password@127.0.0.1:3306/")
+    if DEBUG else os.environ["MYSQL_CONFIG"]
+)
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, "db.sqlite3"),
-    },
-}
-if "MYSQL_HOST" in os.environ:
-    DATABASES['mysql'] = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'resman',
-        'USER': os.environ["MYSQL_USER"],
-        'PASSWORD': os.environ["MYSQL_PASSWORD"],
-        'HOST': os.environ["MYSQL_HOST"],
-    }
+        'USER': unquote(mysql_config.username),
+        'PASSWORD': unquote(mysql_config.password),
+        'HOST': mysql_config.hostname,
+        'PORT': mysql_config.port if mysql_config.port is not None else 3306,
+        'OPTIONS': {
+            'charset': 'utf8mb4'
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -110,6 +116,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -128,5 +144,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 # STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, "frontend/dist/static")
+#     os.object_name.join(BASE_DIR, "frontend/dist/static")
 # ]
+
+# e.x. https://access_key:secret_key@s3.xxx.com/
+DEFAULT_S3_CONFIG = (
+    os.environ.get("S3_CONFIG", "http://resman:resman_password@127.0.0.1:9000/")
+    if DEBUG else os.environ["S3_CONFIG"]
+)
+DEFAULT_S3_BUCKET = os.environ.get("S3_BUCKET", "resman")

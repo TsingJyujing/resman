@@ -1,14 +1,28 @@
-import json
 from abc import abstractmethod
-from django.contrib import auth
+
 from django.db import models
+from tsing_spider.util.pyurllib import http_get
+
+from utils.storage import DEFAULT_MINIO_CLIENT
 
 
-# Image thread
+class BaseThread(models.Model):
+    class Meta:
+        abstract = True
+        ordering = ["order"]
+
+
+# IMAGE THREAD RELATED
+
 class ReactionImageThread(models.Model):
+    """
+    The user's reaction to some image thread
+    positive_reaction: is this reaction positive?
+        Like: True
+        Dislike: False
+    """
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    # Like: True Dislike: False
     positive_reaction = models.BooleanField()
     owner = models.ForeignKey(
         "auth.User", related_name="like_image", on_delete=models.CASCADE
@@ -26,13 +40,13 @@ class ImageThread(models.Model):
     updated = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    data = models.TextField(default="{}")
-
-    def set_data(self, x):
-        self.data = json.dumps(x)
-
-    def get_data(self):
-        return json.loads(self.data)
+    data = models.JSONField()
+    owner = models.ForeignKey(
+        "auth.User",
+        related_name="image_thread",
+        on_delete=models.SET_NULL,
+        null=True
+    )
 
 
 class BaseImage(models.Model):
@@ -46,18 +60,29 @@ class BaseImage(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ["order"]
+        ordering = ["order", "id"]
+
+
+class HttpImage(BaseImage):
+    """
+    Get image from HTTP URL
+    """
+    url = models.TextField()
+
+    def get_image_data(self) -> bytes:
+        return http_get(self.url)
 
 
 class DefaultS3Image(BaseImage):
     """
     Get image from default S3 bucket
     """
-    s3_path = models.CharField(max_length=255, unique=True)
+    bucket = models.CharField(max_length=255)
+    object_name = models.CharField(max_length=255)
 
     def get_image_data(self) -> bytes:
-        pass
+        return DEFAULT_MINIO_CLIENT.get_object(self.bucket, self.object_name).data
 
-# Video Thread
+# VIDEO THREAD RELATED
 
-# Novel Thread
+# NOVEL THREAD RELATED

@@ -4,6 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Yuan Yifan <tsingjyujing@163.com>"]
 
+[[tool.poetry.source]]
+name = "tsingjyujing"
+url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
+default = true
+
 [tool.poetry.dependencies]
 python = "^3.7"
 django = "^3.1.4"
@@ -12,13 +17,13 @@ minio = "^7.0.0"
 pydantic = "^1.7.3"
 mysqlclient = "^2.0.2"
 djangorestframework = "^3.12.2"
-
-# Machine learning toolkit
+tsingspider = "^1.4.2"
+tqdm = "^4.54.1"
+requests = "^2.25.1"
 gensim = "^3.8.3"
 jieba = "^0.42.1"
 zhconv = "^1.4.1"
 chardet = "^4.0.0"
-tqdm = "^4.54.1"
 
 [tool.poetry.dev-dependencies]
 

@@ -1,0 +1,36 @@
+version: "3.8"
+# Setting up development environment for local debugging
+services:
+  db: # mysql://resman:resman_password@127.0.0.1:3306/
+    image: tsingjyujing/mysql-lite:5
+    environment:
+      MYSQL_DATABASE: "resman"
+      MYSQL_USER: "resman"
+      MYSQL_PASSWORD: "resman_password"
+      MYSQL_ROOT_PASSWORD: "root_password"
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_520_ci
+    ports:
+      - 3306:3306
+    volumes:
+      - db-data:/var/lib/mysql
+  minio: # http://resman:resman_password@127.0.0.1:9000/
+    image: minio/minio
+    volumes:
+      - s3-data:/data
+    ports:
+      - 9000:9000
+    environment:
+      MINIO_ACCESS_KEY: "resman"
+      MINIO_SECRET_KEY: "resman_password"
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+volumes:
+  s3-data:
+  db-data:

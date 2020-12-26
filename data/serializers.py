@@ -1,7 +1,9 @@
+from rest_framework.serializers import ModelSerializer
+
 from data.models import ImageThread
 
 
-class ImageThreadSerializer(object):
+class ImageThreadSerializer(ModelSerializer):
     """
     Serializer for ImageThread
     """
@@ -9,6 +11,11 @@ class ImageThreadSerializer(object):
     class Meta:
         model = ImageThread
         fields = [
-            "id", "created", "updated",
-            "title", "description", "data"
+            "id",
+            "created",
+            "updated",
+            "title",
+            "description",
+            "data",
+            "owner"
         ]
