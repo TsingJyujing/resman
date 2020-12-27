@@ -2,7 +2,7 @@ version: "3.8"
 # Setting up development environment for local debugging
 services:
   db: # mysql://resman:resman_password@127.0.0.1:3306/
-    image: tsingjyujing/mysql-lite:5
+    image: tsingjyujing/mysql-lite:8
     environment:
       MYSQL_DATABASE: "resman"
       MYSQL_USER: "resman"

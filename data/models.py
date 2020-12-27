@@ -1,9 +1,13 @@
+import logging
 from abc import abstractmethod
 
 from django.db import models
-from tsing_spider.util.pyurllib import http_get
+from minio.deleteobjects import DeleteObject
 
-from utils.storage import DEFAULT_MINIO_CLIENT
+from resman.settings import DEFAULT_S3_BUCKET
+from utils.storage import create_default_minio_client
+
+log = logging.getLogger(__file__)
 
 
 class BaseThread(models.Model):
@@ -53,7 +57,8 @@ class BaseImage(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     order = models.IntegerField()
-    thread = models.ForeignKey("ImageThread", on_delete=models.CASCADE)
+    thread = models.ForeignKey("ImageThread", on_delete=models.SET_NULL, null=True)
+    content_type = models.CharField(max_length=60, default="image/jpeg")
 
     @abstractmethod
     def get_image_data(self) -> bytes: pass
@@ -61,16 +66,6 @@ class BaseImage(models.Model):
     class Meta:
         abstract = True
         ordering = ["order", "id"]
-
-
-class HttpImage(BaseImage):
-    """
-    Get image from HTTP URL
-    """
-    url = models.TextField()
-
-    def get_image_data(self) -> bytes:
-        return http_get(self.url)
 
 
 class DefaultS3Image(BaseImage):
@@ -81,7 +76,23 @@ class DefaultS3Image(BaseImage):
     object_name = models.CharField(max_length=255)
 
     def get_image_data(self) -> bytes:
-        return DEFAULT_MINIO_CLIENT.get_object(self.bucket, self.object_name).data
+        return create_default_minio_client().get_object(self.bucket, self.object_name).data
+
+    @staticmethod
+    def clean_wild_objects():
+        errs = create_default_minio_client().remove_objects(
+            DEFAULT_S3_BUCKET,
+            [
+                DeleteObject(obj.object_name)
+                for obj in DefaultS3Image.objects.filter(thread=None, bucket=DEFAULT_S3_BUCKET)
+            ]
+        )
+        for err in errs:
+            log.warning(f"Error while removing object: {err}")
+        DefaultS3Image.objects.filter(thread=None).delete()
+
+    def delete(self, using=None, keep_parents=False):
+        super().delete(using, keep_parents)
 
 # VIDEO THREAD RELATED
 

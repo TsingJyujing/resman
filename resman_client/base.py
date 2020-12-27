@@ -8,8 +8,13 @@ from requests.auth import HTTPBasicAuth
 
 class BaseClient:
     def __init__(self, endpoint: str, user: str, password: str):
+        self._password = password
+        self._user = user
         self._endpoint = endpoint
-        self._auth = HTTPBasicAuth(user, password)
+
+    @property
+    def _auth(self):
+        return HTTPBasicAuth(self._user, self._password)
 
     def make_url(self, url):
         return urljoin(self._endpoint, url)
