@@ -1,30 +1,44 @@
+import logging
+import time
 from io import BytesIO
 from uuid import uuid1
 
 import magic
-from django.core.files.uploadedfile import UploadedFile
 from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from whoosh.fields import Schema
 
 from data.models import ImageThread, ReactionImageThread, DefaultS3Image
 from data.serializers import ImageThreadSerializer
 from resman.settings import DEFAULT_S3_BUCKET
-from utils.storage import create_default_minio_client
+from utils.search_engine import WhooshSearchableModelViewSet
+from utils.storage import create_default_minio_client, DEFAULT_MINIO_CLIENT
+
+log = logging.getLogger(__file__)
 
 
-class ImageThreadViewSet(ModelViewSet):
+# Image Operations
+
+
+# noinspection PyMethodOverriding
+class ImageThreadViewSet(WhooshSearchableModelViewSet):
     """
     ViewSet for Project
     """
 
+    def get_index_name(self) -> str:
+        return ImageThread.get_index_name()
+
+    def get_schema(self) -> Schema:
+        return ImageThread.get_schema()
+
     serializer_class = ImageThreadSerializer
     permission_classes = [IsAuthenticated]
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, pk=None):
         instance: ImageThread = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
@@ -48,12 +62,16 @@ class ImageThreadViewSet(ModelViewSet):
         )
         return Response(data)
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+    def destroy(self, request, pk=None):
+        response = super().destroy(request, pk=pk)
+        log.info(f"Cleaning dangling images after deleted image thread {pk}")
+        DefaultS3Image.clean_dangling_objects()
+        return response
 
     def get_queryset(self):
-        title = self.request.query_params.get("title")
         rs = ImageThread.objects.filter()
+        # TODO search title by search engine
+        title = self.request.query_params.get("title")
         if title is not None:
             rs = rs.filter(title=title)
         return rs
@@ -102,51 +120,63 @@ class UploadS3ImageView(APIView):
         data = request.data
         image_thread_id = int(data["image_thread_id"])
         image_thread = ImageThread.objects.get(id=image_thread_id)
-        order = int(data.get("order", "0"))
-        mc = create_default_minio_client()
-        if "bucket" in data and "object_name" in data:
-            bucket = data["bucket"]
-            object_name: str = data["object_name"]
-            if bucket == DEFAULT_S3_BUCKET:
-                raise KeyError(f"Can't use default bucket {DEFAULT_S3_BUCKET}")
-            im_obj = DefaultS3Image.objects.create(
-                bucket=bucket,
-                object_name=object_name,
-                thread=image_thread,
-                order=order,
-                content_type=(
-                    magic.from_buffer(
+        mc = DEFAULT_MINIO_CLIENT
+        start_time = time.time()
+        image_id_list = []
+        if "default_s3_files" in data:
+            for s3_file in data["default_s3_files"]:
+                bucket: str = s3_file["bucket"]
+                object_name: str = s3_file["object_name"]
+                order: int = int(s3_file["order"])
+                if bucket == DEFAULT_S3_BUCKET:
+                    raise KeyError(f"Can't use default bucket {DEFAULT_S3_BUCKET}")
+                object_name_lower = object_name.lower()
+                if object_name_lower.endswith("jpg") or object_name_lower.endswith("jpeg"):
+                    content_type = "image/jpeg"
+                elif object_name_lower.endswith("png"):
+                    content_type = "image/png"
+                elif object_name_lower.endswith("gif"):
+                    content_type = "image/gif"
+                else:
+                    log.warning(f"Can't guess content type from {bucket}:{object_name}, detecting...")
+                    content_type = magic.from_buffer(
                         mc.get_object(bucket, object_name).data,
                         mime=True
-                    ) if not (
-                            object_name.lower().endswith("jpg") or
-                            object_name.lower().endswith("jpeg")
-                    ) else "image/jpeg"
+                    )
+                im_obj = DefaultS3Image.objects.create(
+                    bucket=bucket,
+                    object_name=object_name,
+                    thread=image_thread,
+                    order=order,
+                    content_type=content_type
                 )
-            )
+                image_id_list.append(im_obj.id)
         else:
-            object_name = f"image/{uuid1().hex}"
-            file_count = len(request.FILES)
-            if file_count != 1:
-                raise Exception(f"Request with {file_count} file(s) is not supported")
-            fp: UploadedFile = next(request.FILES.values())
-            file_data = fp.read()
-            mc.put_object(
-                DEFAULT_S3_BUCKET, object_name,
-                BytesIO(file_data), len(file_data),
-                content_type=fp.content_type
-            )
-            im_obj = DefaultS3Image.objects.create(
-                bucket=DEFAULT_S3_BUCKET,
-                object_name=object_name,
-                thread=image_thread,
-                order=order,
-                content_type=fp.content_type
-            )
-        return Response({"image_id": im_obj.id})
+            for fn, fp in request.FILES.items():
+                object_name = f"image/{uuid1().hex}"
+                file_data = fp.read()
+                mc.put_object(
+                    DEFAULT_S3_BUCKET, object_name,
+                    BytesIO(file_data), len(file_data),
+                    content_type=fp.content_type
+                )
+                im_obj = DefaultS3Image.objects.create(
+                    bucket=DEFAULT_S3_BUCKET,
+                    object_name=object_name,
+                    thread=image_thread,
+                    order=int(fn),
+                    content_type=fp.content_type
+                )
+                image_id_list.append(im_obj.id)
+        log.info(f"Request finished in {int((time.time() - start_time) * 1000)} ms")
+        return Response({"image_id_list": image_id_list})
 
 
 class GetImageDataView(APIView):
+    with open("statics/image/404.png", "rb") as fp:
+        IMAGE_404_DATA = fp.read()
+    IMAGE_404_CONTENT_TYPE = magic.from_buffer("image/png", mime=True)
+
     def get(self, request: Request, image_id: int):
         try:
             im: DefaultS3Image = DefaultS3Image.objects.get(id=image_id)
@@ -159,5 +189,9 @@ class GetImageDataView(APIView):
                 content_type=file_object.headers.get("Content-Type", im.content_type)
             )
         except DefaultS3Image.DoesNotExist:
-            # TODO return a designed 404 image
-            return Response(status=404)
+            resp = HttpResponse(
+                content=GetImageDataView.IMAGE_404_DATA,
+                content_type=GetImageDataView.IMAGE_404_CONTENT_TYPE,
+            )
+            resp.status_code = 404
+            return resp

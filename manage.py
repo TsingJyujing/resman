@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+import logging
 import os
 import sys
+
+logging.basicConfig(level=logging.INFO)
 
 
 def main():

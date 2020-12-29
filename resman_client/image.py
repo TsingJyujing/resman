@@ -1,9 +1,16 @@
 from io import BytesIO
-from typing import Optional, Union, BinaryIO
+from typing import Optional, Union, BinaryIO, List
 
 import magic
+from pydantic import BaseModel
 
 from resman_client.base import BaseClient
+
+
+class DefaultS3Image(BaseModel):
+    bucket: str
+    object_name: str
+    order: int
 
 
 class ImageThreadClient(BaseClient):
@@ -38,33 +45,34 @@ class ImageThreadClient(BaseClient):
     def destroy(self):
         self.delete(f"api/image_thread/{self.image_thread_id}").raise_for_status()
 
-    def append_s3_image(self, bucket: str, object_name: str, order: int = 0):
+    def append_s3_images(self, images: List[DefaultS3Image]):
         self.post(
             f"api/image/upload",
             json=dict(
                 image_thread_id=self.image_thread_id,
-                bucket=bucket,
-                object_name=object_name,
-                order=order,
+                default_s3_files=[
+                    m.dict()
+                    for m in images
+                ]
             )
         ).raise_for_status()
 
-    def upload_image(self, file: Union[bytes, str, BinaryIO], order: int = 0):
-        if isinstance(file, str):
-            with open(file, "rb") as fp:
-                data = fp.read()
-        elif isinstance(file, bytes):
-            data = file
-        else:
-            data = file.read()
-        mime = magic.from_buffer(data, mime=True)
+    def upload_images(self, files: List[Union[bytes, str, BinaryIO]], order: int = 0):
+        files_commit = {}
+        for i, file in enumerate(files):
+            if isinstance(file, str):
+                with open(file, "rb") as fp:
+                    data = fp.read()
+            elif isinstance(file, bytes):
+                data = file
+            else:
+                data = file.read()
+            mime = magic.from_buffer(data, mime=True)
+            files_commit[f"file_{i + order}"] = (str(i + order), BytesIO(data), mime)
         self.post(
             f"api/image/upload",
-            data=dict(
-                image_thread_id=self.image_thread_id,
-                order=order,
-            ),
-            files=dict(file=("data", BytesIO(data), mime))
+            data=dict(image_thread_id=self.image_thread_id),
+            files=files_commit
         ).raise_for_status()
 
 

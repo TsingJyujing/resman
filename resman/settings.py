@@ -10,10 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
+import logging
 import os
-
 # Build paths inside the project like this: os.object_name.join(BASE_DIR, ...)
 from urllib.parse import urlparse, unquote
+
+log = logging.getLogger("DJANGO_SETTINGS")
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,8 +25,22 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'xmg@8-2c-03^@3e9qrdtuu$-@j2)m^7xd(+g6u08u9vqb0ldmv'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# FIXME SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+
+def environ_get(variable_name: str, default_value: str = None):
+    """
+    Get important variable from environment variables.
+    The default value can only be used in debugging mode.
+    :param variable_name: Environment variable name
+    :param default_value: Default value in debug mode
+    :return:
+    """
+    if not (variable_name in os.environ or DEBUG):
+        raise KeyError(f"Environment variable {variable_name} not set in production model")
+    return os.environ.get(variable_name, default_value)
+
 
 ALLOWED_HOSTS = ["*"]
 
@@ -79,10 +95,7 @@ WSGI_APPLICATION = 'resman.wsgi.application'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 
-mysql_config = urlparse(
-    os.environ.get("MYSQL_CONFIG", "mysql://resman:resman_password@127.0.0.1:3306/")
-    if DEBUG else os.environ["MYSQL_CONFIG"]
-)
+mysql_config = urlparse(environ_get("MYSQL_CONFIG", "mysql://resman:resman_password@127.0.0.1:3306/"))
 
 DATABASES = {
     'default': {
@@ -143,13 +156,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATICFILES_DIRS = [
-#     os.object_name.join(BASE_DIR, "frontend/dist/static")
-# ]
 
 # e.x. https://access_key:secret_key@s3.xxx.com/
-DEFAULT_S3_CONFIG = (
-    os.environ.get("S3_CONFIG", "http://resman:resman_password@127.0.0.1:9000/")
-    if DEBUG else os.environ["S3_CONFIG"]
+DEFAULT_S3_CONFIG = environ_get("S3_CONFIG", "http://resman:resman_password@127.0.0.1:9000/")
+DEFAULT_S3_BUCKET = environ_get("S3_BUCKET", "resman")
+
+WHOOSH_PATH = environ_get(
+    "WHOOSH_PATH",
+    os.path.join(BASE_DIR, "whoosh_index")
 )
-DEFAULT_S3_BUCKET = os.environ.get("S3_BUCKET", "resman")
+if not os.path.isdir(WHOOSH_PATH):
+    if DEBUG:
+        os.makedirs(WHOOSH_PATH)
+    else:
+        raise Exception(f"Whoosh path {WHOOSH_PATH} not existed")

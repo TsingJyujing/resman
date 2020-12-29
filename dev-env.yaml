@@ -27,10 +27,23 @@ services:
       MINIO_SECRET_KEY: "resman_password"
     command: server /data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s
       timeout: 20s
       retries: 3
+#  elasticsearch:
+#    image: "docker.elastic.co/elasticsearch/elasticsearch:7.10.1"
+#    volumes:
+#      - es-data:/usr/share/elasticsearch/data
+#    ports:
+#      - 9200:9200
+#      - 9300:9300
+#    environment:
+#      ES_JAVA_OPTS: "-Xms512m -Xmx1024m"
+#      ELASTIC_PASSWORD: "elastic_password" # For user: elastic
+#      "discovery.type": "single-node"
+#      "xpack.security.enabled": "true"
 volumes:
   s3-data:
   db-data:
+#  es-data:

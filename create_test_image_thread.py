@@ -16,13 +16,11 @@ if __name__ == '__main__':
         indent=2
     ))
     data_dir = "statics/image/test"
-    image_list = random.sample(os.listdir(data_dir), k=3)
-    for i, f in enumerate(image_list):
-        with open(os.path.join(data_dir, f), "rb") as fp:
-            image_thread.upload_image(fp, i)
-    image_thread.append_s3_image(
-        "spider", "uxxx.jpeg", 10
-    )
+    image_thread.upload_images([
+        os.path.join(data_dir, f)
+        for i, f in enumerate(random.sample(os.listdir(data_dir), k=10))
+    ], 0)
+    # image_thread.append_s3_image("spider", "uxxx.jpeg", 10)
     last_status = None
     operation_seq = [random.choice([True, False, None]) for _ in range(5)]
     for s in operation_seq:
@@ -31,4 +29,4 @@ if __name__ == '__main__':
         assert image_thread.reaction == s
         last_status = s
     image_thread.reaction = True
-    image_thread.destroy()
+    # image_thread.destroy()

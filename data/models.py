@@ -1,10 +1,14 @@
 import logging
 from abc import abstractmethod
+from typing import Any, Dict
 
 from django.db import models
+from jieba.analyse import ChineseAnalyzer
 from minio.deleteobjects import DeleteObject
+from whoosh.fields import Schema, ID, TEXT
 
 from resman.settings import DEFAULT_S3_BUCKET
+from utils.search_engine import ISearchable
 from utils.storage import create_default_minio_client
 
 log = logging.getLogger(__file__)
@@ -36,10 +40,31 @@ class ReactionImageThread(models.Model):
     )
 
     class Meta:
+        indexes = [
+            models.Index(fields=['owner', 'thread'])
+        ]
         unique_together = ('owner', 'thread')
 
 
-class ImageThread(models.Model):
+class ImageThread(models.Model, ISearchable):
+
+    @classmethod
+    def get_schema(cls) -> Schema:
+        return Schema(
+            id=ID(unique=True),
+            full_text=TEXT(analyzer=ChineseAnalyzer()),
+        )
+
+    @classmethod
+    def get_index_name(cls) -> str:
+        return "imagethread"
+
+    def to_fields(self) -> Dict[str, Any]:
+        return {
+            "id": str(self.id),
+            "full_text": self.title + self.description,
+        }
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=255)
@@ -64,6 +89,9 @@ class BaseImage(models.Model):
     def get_image_data(self) -> bytes: pass
 
     class Meta:
+        indexes = [
+            models.Index(fields=['thread'])
+        ]
         abstract = True
         ordering = ["order", "id"]
 
@@ -79,20 +107,19 @@ class DefaultS3Image(BaseImage):
         return create_default_minio_client().get_object(self.bucket, self.object_name).data
 
     @staticmethod
-    def clean_wild_objects():
+    def clean_dangling_objects():
+        objects_to_remove = [
+            DeleteObject(obj.object_name)
+            for obj in DefaultS3Image.objects.filter(thread=None, bucket=DEFAULT_S3_BUCKET)
+        ]
+        log.info(f"Removing {len(objects_to_remove)} items in S3 server")
         errs = create_default_minio_client().remove_objects(
             DEFAULT_S3_BUCKET,
-            [
-                DeleteObject(obj.object_name)
-                for obj in DefaultS3Image.objects.filter(thread=None, bucket=DEFAULT_S3_BUCKET)
-            ]
+            objects_to_remove
         )
         for err in errs:
             log.warning(f"Error while removing object: {err}")
         DefaultS3Image.objects.filter(thread=None).delete()
-
-    def delete(self, using=None, keep_parents=False):
-        super().delete(using, keep_parents)
 
 # VIDEO THREAD RELATED
 
