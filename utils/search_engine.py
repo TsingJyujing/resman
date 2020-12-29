@@ -18,9 +18,14 @@ class WhooshSearchEngine:
         self._get_lock_lock = Lock()
 
     def ensure_index(self, index: str, schema: Schema = None):
-        self._get_index(index, schema)
+        self.get_index(index, schema)
 
-    def _get_index(self, index: str, schema: Schema = None) -> Index:
+    def get_searcher(self, index: str):
+        if not self.storage.index_exists(index):
+            raise Exception("Index not existed")
+        return self.get_index(index).searcher()
+
+    def get_index(self, index: str, schema: Schema = None) -> Index:
         """
         Get index only for read operation
         :param index:
@@ -41,25 +46,22 @@ class WhooshSearchEngine:
             return self.index_lock[index]
 
     def update_data(self, index: str, **fields):
-        ix = self._get_index(index)
+        ix = self.get_index(index)
         with self._get_lock(index):
-            w = ix.writer()
-            w.update_document(**fields)
-            w.commit()
+            with ix.writer() as w:
+                w.update_document(**fields)
 
     def insert_data(self, index: str, **fields):
-        ix = self._get_index(index)
+        ix = self.get_index(index)
         with self._get_lock(index):
-            w = ix.writer()
-            w.add_document(**fields)
-            w.commit()
+            with ix.writer() as w:
+                w.add_document(**fields)
 
     def delete_data(self, index: str, id_field, id_value):
-        ix = self._get_index(index)
+        ix = self.get_index(index)
         with self._get_lock(index):
-            w = ix.writer()
-            w.delete_by_term(id_field, id_value)
-            w.commit()
+            with ix.writer() as w:
+                w.delete_by_term(id_field, id_value)
 
 
 WHOOSH_SEARCH_ENGINE = WhooshSearchEngine(WHOOSH_PATH)
@@ -103,7 +105,7 @@ class SearchableModelViewSet(ModelViewSet):
         pass
 
     @abstractmethod
-    def search_engine_delete(self, pk:str):
+    def search_engine_delete(self, pk: str):
         """
         :param pk:
         :return:
@@ -150,3 +152,6 @@ class WhooshSearchableModelViewSet(SearchableModelViewSet, ABC):
 
     def search_engine_delete(self, pk: str):
         WHOOSH_SEARCH_ENGINE.delete_data(self.get_index_name(), "id", pk)
+
+    def get_searcher(self):
+        return WHOOSH_SEARCH_ENGINE.get_searcher(self.get_index_name())

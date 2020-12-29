@@ -1,15 +1,20 @@
 import logging
 import time
 from io import BytesIO
+from typing import Sequence
 from uuid import uuid1
 
 import magic
+from django.core.paginator import Paginator
+from django.db.models import Case, When
 from django.http import HttpResponse
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from whoosh.fields import Schema
+from whoosh.qparser import QueryParser, syntax
 
 from data.models import ImageThread, ReactionImageThread, DefaultS3Image
 from data.serializers import ImageThreadSerializer
@@ -29,16 +34,16 @@ class ImageThreadViewSet(WhooshSearchableModelViewSet):
     ViewSet for Project
     """
 
+    serializer_class = ImageThreadSerializer
+    permission_classes = [IsAuthenticated]
+
     def get_index_name(self) -> str:
         return ImageThread.get_index_name()
 
     def get_schema(self) -> Schema:
         return ImageThread.get_schema()
 
-    serializer_class = ImageThreadSerializer
-    permission_classes = [IsAuthenticated]
-
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, *args, **kwargs):
         instance: ImageThread = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
@@ -68,13 +73,25 @@ class ImageThreadViewSet(WhooshSearchableModelViewSet):
         DefaultS3Image.clean_dangling_objects()
         return response
 
+    def list(self, request: Request):
+        q = request.query_params.get("q")
+        n = int(request.query_params.get("n", "20"))
+        p = int(request.query_params.get("p", "1"))
+        if q is not None:
+            qp = QueryParser("full_text", self.get_schema(), group=syntax.OrGroup)
+            qr = qp.parse(q)
+            with self.get_searcher() as s:
+                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search_page(qr, p, n)]
+            preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
+            queryset = ImageThread.objects.filter(pk__in=indexes).order_by(preserved)
+        else:
+            queryset = self.filter_queryset(self.get_queryset())
+            queryset = Paginator(queryset, n).get_page(p)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def get_queryset(self):
-        rs = ImageThread.objects.filter()
-        # TODO search title by search engine
-        title = self.request.query_params.get("title")
-        if title is not None:
-            rs = rs.filter(title=title)
-        return rs
+        return ImageThread.objects.order_by("-created")
 
 
 class UserReactionView(APIView):
@@ -193,5 +210,5 @@ class GetImageDataView(APIView):
                 content=GetImageDataView.IMAGE_404_DATA,
                 content_type=GetImageDataView.IMAGE_404_CONTENT_TYPE,
             )
-            resp.status_code = 404
+            resp.status_code = status.HTTP_404_NOT_FOUND
             return resp

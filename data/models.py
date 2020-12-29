@@ -5,10 +5,12 @@ from typing import Any, Dict
 from django.db import models
 from jieba.analyse import ChineseAnalyzer
 from minio.deleteobjects import DeleteObject
+from tqdm import tqdm
+from whoosh import writing
 from whoosh.fields import Schema, ID, TEXT
 
 from resman.settings import DEFAULT_S3_BUCKET
-from utils.search_engine import ISearchable
+from utils.search_engine import ISearchable, WHOOSH_SEARCH_ENGINE
 from utils.storage import create_default_minio_client
 
 log = logging.getLogger(__file__)
@@ -51,7 +53,7 @@ class ImageThread(models.Model, ISearchable):
     @classmethod
     def get_schema(cls) -> Schema:
         return Schema(
-            id=ID(unique=True),
+            id=ID(unique=True, stored=True),
             full_text=TEXT(analyzer=ChineseAnalyzer()),
         )
 
@@ -76,6 +78,15 @@ class ImageThread(models.Model, ISearchable):
         on_delete=models.SET_NULL,
         null=True
     )
+
+
+def rebuild_image_thread_index():
+    ix = WHOOSH_SEARCH_ENGINE.get_index(ImageThread.get_index_name(), ImageThread.get_schema())
+    with ix.writer() as w:
+        w.mergetype = writing.CLEAR
+    with ix.writer() as w:
+        for obj in tqdm(ImageThread.objects.all()):
+            w.add_document(**obj.to_fields())
 
 
 class BaseImage(models.Model):

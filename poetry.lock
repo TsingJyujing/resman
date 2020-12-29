@@ -145,29 +145,6 @@ url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
 reference = "tsingjyujing"
 
 [[package]]
-name = "elasticsearch"
-version = "7.10.1"
-description = "Python client for Elasticsearch"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
-
-[package.dependencies]
-certifi = "*"
-urllib3 = ">=1.21.1,<2"
-
-[package.extras]
-async = ["aiohttp (>=3,<4)"]
-develop = ["requests (>=2.0.0,<3.0.0)", "coverage", "mock", "pyyaml", "pytest", "pytest-cov", "sphinx (<1.7)", "sphinx-rtd-theme", "black", "jinja2"]
-docs = ["sphinx (<1.7)", "sphinx-rtd-theme"]
-requests = ["requests (>=2.4.0,<3.0.0)"]
-
-[package.source]
-type = "legacy"
-url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
-reference = "tsingjyujing"
-
-[[package]]
 name = "gensim"
 version = "3.8.3"
 description = "Python framework for fast Vector Space Modelling"
@@ -572,7 +549,7 @@ reference = "tsingjyujing"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "b33c774e3f8684fabf1728298571ed8af4646c585602d369c826a65eaa6ff86c"
+content-hash = "fb5d5972501b05b37bfe83a4f23fb146f82b5f4157671af8c078e1cec63ddba6"
 
 [metadata.files]
 asgiref = [
@@ -609,10 +586,6 @@ django-cors-headers = [
 ]
 djangorestframework = [
     {file = "djangorestframework-3.12.2-py3-none-any.whl", hash = "sha256:0209bafcb7b5010fdfec784034f059d512256424de2a0f084cb82b096d6dd6a7"},
-]
-elasticsearch = [
-    {file = "elasticsearch-7.10.1-py2.py3-none-any.whl", hash = "sha256:4ebd34fd223b31c99d9f3b6b6236d3ac18b3046191a37231e8235b06ae7db955"},
-    {file = "elasticsearch-7.10.1.tar.gz", hash = "sha256:a725dd923d349ca0652cf95d6ce23d952e2153740cf4ab6daf4a2d804feeed48"},
 ]
 gensim = [
     {file = "gensim-3.8.3-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:61eed1d6b5fbe6dda0586ea447ebc2dc7890a7f70c2ed953d5abc3fe3cfb94bb"},
