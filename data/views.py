@@ -14,12 +14,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from whoosh.fields import Schema
-from whoosh.qparser import QueryParser, syntax
 
 from data.models import ImageThread, ReactionImageThread, DefaultS3Image
 from data.serializers import ImageThreadSerializer
 from resman.settings import DEFAULT_S3_BUCKET
-from utils.search_engine import WhooshSearchableModelViewSet
+from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
 from utils.storage import create_default_minio_client, DEFAULT_MINIO_CLIENT
 
 log = logging.getLogger(__file__)
@@ -78,8 +77,7 @@ class ImageThreadViewSet(WhooshSearchableModelViewSet):
         n = int(request.query_params.get("n", "20"))
         p = int(request.query_params.get("p", "1"))
         if q is not None:
-            qp = QueryParser("full_text", self.get_schema(), group=syntax.OrGroup)
-            qr = qp.parse(q)
+            qr = parse_title_query("full_text", q, 5)
             with self.get_searcher() as s:
                 indexes: Sequence[int] = [int(hit["id"]) for hit in s.search_page(qr, p, n)]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])

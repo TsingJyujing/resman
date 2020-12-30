@@ -209,6 +209,19 @@ url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
 reference = "tsingjyujing"
 
 [[package]]
+name = "joblib"
+version = "1.0.0"
+description = "Lightweight pipelining with Python functions"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.source]
+type = "legacy"
+url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
+reference = "tsingjyujing"
+
+[[package]]
 name = "lxml"
 version = "4.6.2"
 description = "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API."
@@ -534,6 +547,27 @@ url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
 reference = "tsingjyujing"
 
 [[package]]
+name = "word2vec"
+version = "0.11.1"
+description = "Wrapper for Google word2vec"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+joblib = "*"
+numpy = ">=1.9.2"
+
+[package.extras]
+dev = ["setuptools", "setuptools-scm", "pylint", "flake8", "black", "isort", "twine", "wheel", "pytest", "pytest-cov", "numpy", "scikit-learn", "notebook", "jupyterlab", "nltk"]
+test = ["pytest"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
+reference = "tsingjyujing"
+
+[[package]]
 name = "zhconv"
 version = "1.4.1"
 description = "A simple implementation of Simplified-Traditional Chinese conversion."
@@ -549,7 +583,7 @@ reference = "tsingjyujing"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "fb5d5972501b05b37bfe83a4f23fb146f82b5f4157671af8c078e1cec63ddba6"
+content-hash = "3734944325b9f6d84bf3bb0b67de9b5e1e6b5968ef4c9c6f22458c641fc34291"
 
 [metadata.files]
 asgiref = [
@@ -628,6 +662,10 @@ iso8601 = [
 ]
 jieba = [
     {file = "jieba-0.42.1.tar.gz", hash = "sha256:055ca12f62674fafed09427f176506079bc135638a14e23e25be909131928db2"},
+]
+joblib = [
+    {file = "joblib-1.0.0-py3-none-any.whl", hash = "sha256:75ead23f13484a2a414874779d69ade40d4fa1abe62b222a23cd50d4bc822f6f"},
+    {file = "joblib-1.0.0.tar.gz", hash = "sha256:7ad866067ac1fdec27d51c8678ea760601b70e32ff1881d4dc8e1171f2b64b24"},
 ]
 lxml = [
     {file = "lxml-4.6.2-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:a9d6bc8642e2c67db33f1247a77c53476f3a166e09067c0474facb045756087f"},
@@ -915,6 +953,9 @@ whoosh = [
     {file = "Whoosh-2.7.4-py2.py3-none-any.whl", hash = "sha256:aa39c3c3426e3fd107dcb4bde64ca1e276a65a889d9085a6e4b54ba82420a852"},
     {file = "Whoosh-2.7.4.tar.gz", hash = "sha256:7ca5633dbfa9e0e0fa400d3151a8a0c4bec53bd2ecedc0a67705b17565c31a83"},
     {file = "Whoosh-2.7.4.zip", hash = "sha256:e0857375f63e9041e03fedd5b7541f97cf78917ac1b6b06c1fcc9b45375dda69"},
+]
+word2vec = [
+    {file = "word2vec-0.11.1.tar.gz", hash = "sha256:222d8ffb47f385c43eba45e3f308e605fc9736b2b7137d74979adf1a31e7c8b4"},
 ]
 zhconv = [
     {file = "zhconv-1.4.1-py2.py3-none-any.whl", hash = "sha256:6ef421829768a5a0e1228040049ccf310a149dd3f11ce618a12ab2401b681a4a"},

@@ -13,7 +13,11 @@
     </facet>
   </component>
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/dev" />
+      <excludeFolder url="file://$MODULE_DIR$/whoosh_index" />
+      <excludeFolder url="file://$MODULE_DIR$/.ipynb_checkpoints" />
+    </content>
     <orderEntry type="jdk" jdkName="Poetry (resman)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

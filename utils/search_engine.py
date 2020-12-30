@@ -1,13 +1,18 @@
+import re
 from abc import abstractmethod, ABC
 from threading import Lock
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from rest_framework.viewsets import ModelViewSet
 from whoosh.fields import Schema
 from whoosh.filedb.filestore import FileStorage
 from whoosh.index import Index
+from whoosh.query import Term, Query
+from whoosh.query.compound import DisjunctionMax, AndMaybe
 
 from resman.settings import WHOOSH_PATH
+from utils.nlp.w2v_search import title_expand
+from utils.nlp.word_cut import text_clean_split
 
 
 class WhooshSearchEngine:
@@ -155,3 +160,30 @@ class WhooshSearchableModelViewSet(SearchableModelViewSet, ABC):
 
     def get_searcher(self):
         return WHOOSH_SEARCH_ENGINE.get_searcher(self.get_index_name())
+
+
+def parse_title_query(fieldname: str, query_info: str, n_expand: int):
+    def get_term(text: str, boost: float = 1.0):
+        return Term(fieldname, text, boost)
+
+    def connect_and_maybe(queries: List[Query]):
+        term_size = len(queries)
+        if term_size == 1:
+            return queries[0]
+        elif term_size == 2:
+            return AndMaybe(queries[0], queries[1])
+        else:
+            return AndMaybe(queries[0], connect_and_maybe(queries[1:]))
+
+    def cut_result():
+        for ws in re.split(r"\s+", query_info):
+            for rs in text_clean_split(ws):
+                yield from rs
+
+    query_list = []
+    for w in cut_result():
+        term_list = [get_term(w)]
+        term_list += [get_term(s, v * 0.5) for s, v in title_expand(w, n_expand)]
+        query_list.append(DisjunctionMax(term_list))
+
+    return connect_and_maybe(query_list)

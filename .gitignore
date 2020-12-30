@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 /dev/
 /whoosh_index/
+/nlp_resources/

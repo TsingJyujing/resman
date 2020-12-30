@@ -3,13 +3,13 @@ from abc import abstractmethod
 from typing import Any, Dict
 
 from django.db import models
-from jieba.analyse import ChineseAnalyzer
 from minio.deleteobjects import DeleteObject
 from tqdm import tqdm
 from whoosh import writing
 from whoosh.fields import Schema, ID, TEXT
 
 from resman.settings import DEFAULT_S3_BUCKET
+from utils.nlp.word_cut import get_analyzer, clean_up_chinese_str
 from utils.search_engine import ISearchable, WHOOSH_SEARCH_ENGINE
 from utils.storage import create_default_minio_client
 
@@ -54,7 +54,7 @@ class ImageThread(models.Model, ISearchable):
     def get_schema(cls) -> Schema:
         return Schema(
             id=ID(unique=True, stored=True),
-            full_text=TEXT(analyzer=ChineseAnalyzer()),
+            full_text=TEXT(analyzer=get_analyzer()),
         )
 
     @classmethod
@@ -64,7 +64,7 @@ class ImageThread(models.Model, ISearchable):
     def to_fields(self) -> Dict[str, Any]:
         return {
             "id": str(self.id),
-            "full_text": self.title + self.description,
+            "full_text": clean_up_chinese_str(self.title + self.description),
         }
 
     created = models.DateTimeField(auto_now_add=True)
