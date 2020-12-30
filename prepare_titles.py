@@ -23,7 +23,7 @@ def get_texts():
 
 
 if __name__ == '__main__':
-    with open("title_and_comments.txt", "w") as fp:
+    with open("dev/title_and_comments.txt", "w") as fp:
         for s in get_texts():
             for rs in text_clean_split(s):
                 fp.write(" ".join(rs) + "\n")
