@@ -14,11 +14,36 @@ Including another URLconf
     2. Add a URL to urlpatterns:  object_name('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+
+DRF_YASG_CACHE_TIMEOUT = 300
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Resman API",
+        default_version="1.0",
+        description="Resman API Doc",
+    ),
+    public=True,  # Set public to let everyone access the documentation but executions still require login
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path("api/", include("data.urls")),
     path("pages/", include('pages.urls')),
+    re_path(
+        r"^swagger(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=DRF_YASG_CACHE_TIMEOUT),
+        name="schema-json",
+    ),
+    re_path(
+        r"^swagger/$",
+        schema_view.with_ui("swagger", cache_timeout=DRF_YASG_CACHE_TIMEOUT),
+        name="schema-swagger-ui",
+    ),
+    re_path(
+        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=DRF_YASG_CACHE_TIMEOUT), name="schema-redoc"
+    ),
 ]

@@ -26,6 +26,7 @@ zhconv = "^1.4.1"
 chardet = "^4.0.0"
 python-magic = "^0.4.18"
 whoosh = "^2.7.4"
+drf-yasg = "^1.20.0"
 
 [tool.poetry.dev-dependencies]
 pymongo = "^3.11.2"

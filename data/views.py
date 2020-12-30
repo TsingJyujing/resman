@@ -77,7 +77,7 @@ class ImageThreadViewSet(WhooshSearchableModelViewSet):
         n = int(request.query_params.get("n", "20"))
         p = int(request.query_params.get("p", "1"))
         if q is not None:
-            qr = parse_title_query("full_text", q, 5)
+            qr = parse_title_query("full_text", q, 10)
             with self.get_searcher() as s:
                 indexes: Sequence[int] = [int(hit["id"]) for hit in s.search_page(qr, p, n)]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
