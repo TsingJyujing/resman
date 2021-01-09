@@ -32,7 +32,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path("api/", include("data.urls")),
-    path("pages/", include('pages.urls')),
     re_path(
         r"^swagger(?P<format>\.json|\.yaml)$",
         schema_view.without_ui(cache_timeout=DRF_YASG_CACHE_TIMEOUT),
@@ -46,4 +45,5 @@ urlpatterns = [
     re_path(
         r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=DRF_YASG_CACHE_TIMEOUT), name="schema-redoc"
     ),
+    path("", include('pages.urls')),
 ]

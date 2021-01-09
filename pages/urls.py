@@ -1,9 +1,9 @@
-from django.urls import path
-from . import views
+from django.urls import re_path
+
+from .views import frontend_page
 
 app_name = "pages"
 
 urlpatterns = [
-    path(r'test/login', views.test_page, name='test'),
-    path(r'test/json', views.test_api, name='test'),
+    re_path(r'.*?', frontend_page, name='frontend_page'),
 ]

@@ -3,6 +3,7 @@ import LazyLoad from 'react-lazy-load';
 import {makeStyles} from '@material-ui/core/styles';
 import {Container} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
+import {useParams} from 'react-router-dom';
 
 const mockImages = [
     "2020-08-26-22-17-38.png",
@@ -53,12 +54,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ImageThread() {
+    const {id} = useParams();
     const classes = useStyles();
     return (
         <Container maxWidth={"lg"}>
             <br/>
             <Typography variant={"h4"} gutterBottom>
-                Title of the thread
+                Title of the thread {`id=${id}`}
             </Typography>
             <Typography variant={"h6"} gutterBottom>
                 Consequat mauris nunc congue nisi vitae suscipit. Fringilla est ullamcorper eget nulla

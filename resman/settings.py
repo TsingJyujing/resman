@@ -157,6 +157,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+FRONTEND_BUILD_RESULT_DIR = os.path.join(BASE_DIR, "frontend/build")
+FRONTEND_STATICFILES_DIR = os.path.join(FRONTEND_BUILD_RESULT_DIR, "static")
+STATICFILES_DIRS = [FRONTEND_STATICFILES_DIR]
 
 # e.x. https://access_key:secret_key@s3.xxx.com/
 DEFAULT_S3_CONFIG = environ_get("S3_CONFIG", "http://resman:resman_password@127.0.0.1:9000/")

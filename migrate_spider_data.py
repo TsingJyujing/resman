@@ -10,7 +10,7 @@ from utils.storage import create_minio_client_from_config
 if __name__ == '__main__':
     mongo = pymongo.MongoClient("mongodb://dbadmin:979323846@172.30.0.74:27017")
     mc = create_minio_client_from_config("http://tsingjyujing:979323846@172.30.0.74:8333/")
-    migrate_count = 1000
+    migrate_count = 200
     ic = ImageClient("http://127.0.0.1:8000/", "resman", "resman_password")
     coll = mongo.get_database("resman").get_collection("spider_sex8")
     for doc in tqdm(coll.find().sort("_id", direction=pymongo.DESCENDING).limit(migrate_count), total=migrate_count):

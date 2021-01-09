@@ -52,7 +52,7 @@ export default function ResultItem(props) {
                 {post.description}
               </Typography>
               <Typography variant="subtitle1" color="primary">
-                Continue reading...
+                Continue...
               </Typography>
             </CardContent>
           </div>

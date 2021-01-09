@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from io import BytesIO
 from typing import Sequence
@@ -17,7 +18,7 @@ from whoosh.fields import Schema
 
 from data.models import ImageThread, ReactionImageThread, DefaultS3Image
 from data.serializers import ImageThreadSerializer
-from resman.settings import DEFAULT_S3_BUCKET
+from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR
 from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
 from utils.storage import create_default_minio_client, DEFAULT_MINIO_CLIENT
 
@@ -188,7 +189,7 @@ class UploadS3ImageView(APIView):
 
 
 class GetImageDataView(APIView):
-    with open("statics/image/404.png", "rb") as fp:
+    with open(os.path.join(FRONTEND_STATICFILES_DIR, "img/404.png"), "rb") as fp:
         IMAGE_404_DATA = fp.read()
     IMAGE_404_CONTENT_TYPE = magic.from_buffer("image/png", mime=True)
 
