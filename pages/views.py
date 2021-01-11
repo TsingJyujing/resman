@@ -1,3 +1,4 @@
+import json
 import os
 
 from django.contrib.auth.decorators import login_required
@@ -18,4 +19,14 @@ INDEX_HTML_CONTENT = get_index_html_content()
 def frontend_page(request: HttpRequest):
     return HttpResponse(
         content=get_index_html_content() if DEBUG else INDEX_HTML_CONTENT
+    )
+
+
+@login_required
+def current_user(request: HttpRequest):
+    return HttpResponse(
+        content=json.dumps({
+            "id": request.user.id,
+            "name": request.user.username,
+        }).encode()
     )

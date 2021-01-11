@@ -25,6 +25,7 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import theme from "./theme"
 
+import {createGetRequestUrl} from "./Utility";
 
 const drawerWidth = 240;
 
@@ -80,7 +81,7 @@ const useStyles = makeStyles((theme) => ({
     },
     sectionDesktop: {
         display: 'none',
-        [theme.breakpoints.up('md')]: {
+        [theme.breakpoints.up('xs')]: {
             display: 'flex',
         },
     },
@@ -171,10 +172,6 @@ export default function BasicContainer(props) {
         handleMobileMenuClose();
     };
 
-    const handleMobileMenuOpen = (event) => {
-        setMobileMoreAnchorEl(event.currentTarget);
-    };
-
     const menuId = 'primary-search-account-menu';
     const renderMenu = (
         <Menu
@@ -186,33 +183,9 @@ export default function BasicContainer(props) {
             open={isMenuOpen}
             onClose={handleMenuClose}
         >
-            {/* TODO Add more menu item here and fill Logout function */}
-            <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
-        </Menu>
-    );
-
-    const mobileMenuId = 'primary-search-account-menu-mobile';
-    const renderMobileMenu = (
-        <Menu
-            anchorEl={mobileMoreAnchorEl}
-            anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-            id={mobileMenuId}
-            keepMounted
-            transformOrigin={{vertical: 'top', horizontal: 'right'}}
-            open={isMobileMenuOpen}
-            onClose={handleMobileMenuClose}
-        >
-            <MenuItem onClick={handleProfileMenuOpen}>
-                <IconButton
-                    aria-label="account of current user"
-                    aria-controls="primary-search-account-menu"
-                    aria-haspopup="true"
-                    color="inherit"
-                >
-                    <AccountCircle/>
-                </IconButton>
-                <p>Profile</p>
-            </MenuItem>
+            <MenuItem onClick={() => {
+                window.location = createGetRequestUrl(window.location, "/accounts/logout/", {})
+            }}>Logout</MenuItem>
         </Menu>
     );
 
@@ -250,20 +223,8 @@ export default function BasicContainer(props) {
                             <AccountCircle/>
                         </IconButton>
                     </div>
-                    <div className={classes.sectionMobile}>
-                        <IconButton
-                            aria-label="show more"
-                            aria-controls={mobileMenuId}
-                            aria-haspopup="true"
-                            onClick={handleMobileMenuOpen}
-                            color="inherit"
-                        >
-                            <MoreIcon/>
-                        </IconButton>
-                    </div>
                 </Toolbar>
             </AppBar>
-            {renderMobileMenu}
             {renderMenu}
             <Drawer
                 className={classes.drawer}

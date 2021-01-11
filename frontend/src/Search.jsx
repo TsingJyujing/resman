@@ -122,8 +122,7 @@ export default function Search() {
         modifyPageId(1);
     }
 
-    //FIXME set default value to "" after debug finished
-    const [searchKeywords, setSearchKeywords] = React.useState("坦克 纹身");
+    const [searchKeywords, setSearchKeywords] = React.useState("");
     const [query, setQuery] = React.useState(searchKeywords);
 
     const handleSearchKeywords = (event) => {
