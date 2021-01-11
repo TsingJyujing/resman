@@ -1,13 +1,13 @@
 import React from 'react';
 import LazyLoad from 'react-lazy-load';
-import {Container} from "@material-ui/core";
+import {Container, Grid} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
 
 function Gallery({image_ids}) {
     return (
-        <Container maxWidth={"md"}>
+        <Grid container spacing={3}>
             {
                 image_ids.map(image_id => {
                     const [height, setHeight] = React.useState(300);
@@ -15,16 +15,18 @@ function Gallery({image_ids}) {
                         setHeight("auto");
                     };
                     return (
-                        <LazyLoad height={height}
-                                  offsetVertical={300}
-                                  onContentVisible={onContentVisible}
-                                  key={image_id}>
-                            <img src={`/api/image/${image_id}`} alt={image_id} loading={"lazy"} width={"100%"}/>
-                        </LazyLoad>
+                        <Grid item spacing={3} lg={4} md={6} sm={12} xs={12}>
+                            <LazyLoad height={height}
+                                      offsetVertical={300}
+                                      onContentVisible={onContentVisible}
+                                      key={image_id}>
+                                <img src={`/api/image/${image_id}`} alt={image_id} loading={"lazy"} width={"100%"}/>
+                            </LazyLoad>
+                        </Grid>
                     )
                 })
             }
-        </Container>
+        </Grid>
     )
 }
 
