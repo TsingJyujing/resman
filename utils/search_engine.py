@@ -8,7 +8,7 @@ from whoosh.fields import Schema
 from whoosh.filedb.filestore import FileStorage
 from whoosh.index import Index
 from whoosh.query import Term, Query
-from whoosh.query.compound import DisjunctionMax, AndMaybe
+from whoosh.query.compound import DisjunctionMax, AndMaybe, And, Or
 
 from resman.settings import WHOOSH_PATH
 from utils.nlp.w2v_search import title_expand
@@ -162,7 +162,7 @@ class WhooshSearchableModelViewSet(SearchableModelViewSet, ABC):
         return WHOOSH_SEARCH_ENGINE.get_searcher(self.get_index_name())
 
 
-def parse_title_query(fieldname: str, query_info: str, n_expand: int):
+def parse_title_query(fieldname: str, query_info: str, n_expand: int, connector: str):
     def get_term(text: str, boost: float = 1.0):
         return Term(fieldname, text, boost)
 
@@ -185,5 +185,11 @@ def parse_title_query(fieldname: str, query_info: str, n_expand: int):
         term_list = [get_term(w)]
         term_list += [get_term(s, v * 0.5) for s, v in title_expand(w, n_expand)]
         query_list.append(DisjunctionMax(term_list))
-
-    return connect_and_maybe(query_list)
+    if connector == "andmaybe":
+        return connect_and_maybe(query_list)
+    elif connector == "and":
+        return And(query_list)
+    elif connector == "or":
+        return Or(query_list)
+    else:
+        raise Exception(f"Unsupported connector: {connector}")

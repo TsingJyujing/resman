@@ -77,15 +77,16 @@ class ImageThreadViewSet(WhooshSearchableModelViewSet):
         q = request.query_params.get("q")
         n = int(request.query_params.get("n", "20"))
         p = int(request.query_params.get("p", "1"))
+        connector = request.query_params.get("a", "andmaybe")
         if q is not None:
-            qr = parse_title_query("full_text", q, 10)
+            qr = parse_title_query("full_text", q, 10, connector)
             with self.get_searcher() as s:
-                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search_page(qr, p, n)]
+                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search(qr, limit=p * n)][(p - 1) * n:]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
             queryset = ImageThread.objects.filter(pk__in=indexes).order_by(preserved)
         else:
             queryset = self.filter_queryset(self.get_queryset())
-            queryset = Paginator(queryset, n).get_page(p)
+            queryset = Paginator(queryset, n).page(p)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -194,6 +195,7 @@ class GetImageDataView(APIView):
     IMAGE_404_CONTENT_TYPE = magic.from_buffer("image/png", mime=True)
 
     def get(self, request: Request, image_id: int):
+        # TODO Using cache here
         try:
             im: DefaultS3Image = DefaultS3Image.objects.get(id=image_id)
             file_object = create_default_minio_client().get_object(
