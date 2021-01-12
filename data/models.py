@@ -71,7 +71,7 @@ class ImageThread(models.Model, ISearchable):
     updated = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    data = models.JSONField()
+    data = models.TextField(default="{}")
     owner = models.ForeignKey(
         "auth.User",
         related_name="image_thread",

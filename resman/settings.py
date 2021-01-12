@@ -95,11 +95,10 @@ WSGI_APPLICATION = 'resman.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-
-mysql_config = urlparse(environ_get("MYSQL_CONFIG", "mysql://resman:resman_password@127.0.0.1:3306/"))
-
-DATABASES = {
-    'default': {
+if "MYSQL_CONFIG" in os.environ:
+    log.info("Using MySQL as database")
+    mysql_config = urlparse(environ_get("MYSQL_CONFIG", "mysql://resman:resman_password@127.0.0.1:3306/"))
+    db_config = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'resman',
         'USER': unquote(mysql_config.username),
@@ -108,8 +107,17 @@ DATABASES = {
         'PORT': mysql_config.port if mysql_config.port is not None else 3306,
         'OPTIONS': {
             'charset': 'utf8mb4'
-        },
-    },
+        }
+    }
+else:
+    log.info("Using SQLite3 as database")
+    db_config = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': environ_get("SQLITE3_CONFIG", os.path.join(BASE_DIR, "db.sqlite3")),
+    }
+
+DATABASES = {
+    'default': db_config
 }
 
 # Password validation
