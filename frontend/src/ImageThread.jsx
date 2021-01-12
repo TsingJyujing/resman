@@ -1,6 +1,6 @@
 import React from 'react';
 import LazyLoad from 'react-lazy-load';
-import {Container, Grid} from "@material-ui/core";
+import {CircularProgress, Container, Grid} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
@@ -43,8 +43,18 @@ export default function ImageThread() {
             cacheTime: 1000 * 60 * 20
         }
     );
-    if (isLoading) return "Loading...";
-    if (error) return "An error has occurred: " + JSON.stringify(error);
+    if (isLoading) {
+        return <CircularProgress/>;
+    }
+    if (error) {
+        return (
+            <Typography>
+                {
+                    "An error has occurred: " + JSON.stringify(error)
+                }
+            </Typography>
+        );
+    }
     if (Object.keys(contextData).length <= 0) {
         setContextData(data);
     }

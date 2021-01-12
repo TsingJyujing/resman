@@ -9,6 +9,7 @@ import {
     AccordionDetails,
     AccordionSummary,
     Button,
+    CircularProgress,
     Container,
     FormControl,
     Grid,
@@ -52,7 +53,11 @@ const useStyles = makeStyles((theme) => ({
 
 function ImageSearchResults({query, page, pageSize, searchAccuracy}) {
     if (query === "") {
-        return <Grid container spacing={3}/>;
+        return (
+            <Typography>
+                Ready for searching.
+            </Typography>
+        );
     }
     const {isLoading, error, data} = useQuery(
         `QueryImages(${query},${page},${pageSize},${searchAccuracy})`,
@@ -72,22 +77,41 @@ function ImageSearchResults({query, page, pageSize, searchAccuracy}) {
         ),
         {cacheTime: 1000 * 60 * 20}
     );
-    if (isLoading) return "Loading...";
-    if (error) return "An error has occurred: " + JSON.stringify(error);
-    return (
-        <Grid container spacing={3}>
-            {
-                data.map(postElement => (
-                    <ResultItem key={postElement.id} post={{
-                        title: postElement.title,
-                        date: postElement.updated,
-                        description: postElement.description,
-                        url: `/image/${postElement.id}`
-                    }}/>
-                ))
-            }
-        </Grid>
-    );
+    if (isLoading) {
+        return <CircularProgress/>;
+    }
+    if (error) {
+        return (
+            <Typography>
+                {
+                    "An error has occurred: " + JSON.stringify(error)
+                }
+            </Typography>
+        );
+    }
+    if (data.length > 0) {
+        return (
+            <Grid container spacing={3}>
+                {
+                    data.map(postElement => (
+                        <ResultItem key={postElement.id} post={{
+                            title: postElement.title,
+                            date: postElement.updated,
+                            description: postElement.description,
+                            url: `/image/${postElement.id}`
+                        }}/>
+                    ))
+                }
+            </Grid>
+        );
+    } else {
+        return (
+            <Typography>
+                Can't find any result
+            </Typography>
+        );
+    }
+
 }
 
 export default function Search() {
