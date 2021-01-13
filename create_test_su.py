@@ -11,6 +11,7 @@ logging.basicConfig(
 try:
     User = get_user_model()
     User.objects.create_superuser("resman", 'resman@resman.com', "resman_password")
+    log.info("Test user resman created")
 except IntegrityError as ex:
     log.info("Test user already existed.")
 except Exception as ex:
