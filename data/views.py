@@ -1,5 +1,7 @@
 import logging
+import mimetypes
 import os
+import re
 import time
 from io import BytesIO
 from typing import Sequence
@@ -9,6 +11,7 @@ import magic
 from django.core.paginator import Paginator
 from django.db.models import Case, When
 from django.http import HttpResponse
+from django.http.response import StreamingHttpResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -213,3 +216,55 @@ class GetImageDataView(APIView):
             )
             resp.status_code = status.HTTP_404_NOT_FOUND
             return resp
+
+
+class GetVideoStream(APIView):
+    range_re = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+
+    def get(self, request: Request):
+        s3_path = "test.mp4"
+        content_type, encoding = mimetypes.guess_type(s3_path)
+        content_type = content_type or 'application/octet-stream'
+        minio_client = get_default_minio_client()
+
+        range_match = self.range_re.match(
+            request.META.get('HTTP_RANGE', '').strip()
+        )
+
+        if range_match:
+            first_byte, last_byte = range_match.groups()
+            first_byte = int(first_byte) if first_byte else 0
+            last_byte = int(last_byte) if last_byte else minio_client.stat_object(
+                DEFAULT_S3_BUCKET,
+                s3_path,
+            ).size - 1
+            length = last_byte - first_byte + 1
+
+            obj = minio_client.get_object(
+                DEFAULT_S3_BUCKET,
+                s3_path,
+                offset=first_byte,
+                length=length
+            )
+            content_length = obj.getheader('Content-Length')
+            content_range = obj.getheader('Content-Range')
+
+            def _wrapper():
+                yield from obj.stream()
+                obj.close()
+
+            resp = StreamingHttpResponse(_wrapper(), status=206, content_type=content_type)
+            resp['Content-Length'] = content_length
+            resp['Content-Range'] = content_range
+        else:
+            obj = minio_client.get_object(DEFAULT_S3_BUCKET, s3_path)
+            content_length = obj.getheader('Content-Length')
+
+            def _wrapper():
+                yield from obj.stream()
+                obj.close()
+
+            resp = StreamingHttpResponse(_wrapper(), content_type=content_type)
+            resp['Content-Length'] = content_length
+        resp['Accept-Ranges'] = 'bytes'
+        return resp
