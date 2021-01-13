@@ -20,7 +20,7 @@ from data.models import ImageThread, ReactionImageThread, DefaultS3Image
 from data.serializers import ImageThreadSerializer
 from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR
 from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
-from utils.storage import create_default_minio_client, DEFAULT_MINIO_CLIENT
+from utils.storage import create_default_minio_client, get_default_minio_client
 
 log = logging.getLogger(__file__)
 
@@ -137,7 +137,7 @@ class UploadS3ImageView(APIView):
         data = request.data
         image_thread_id = int(data["image_thread_id"])
         image_thread = ImageThread.objects.get(id=image_thread_id)
-        mc = DEFAULT_MINIO_CLIENT
+        mc = get_default_minio_client()
         start_time = time.time()
         image_id_list = []
         if "default_s3_files" in data:

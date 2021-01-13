@@ -27,7 +27,15 @@ def create_default_minio_client() -> Minio:
 
 # Initialize default minio client
 # Thread safe, but can't be shared between processes
-DEFAULT_MINIO_CLIENT = create_default_minio_client()
-if not DEFAULT_MINIO_CLIENT.bucket_exists(DEFAULT_S3_BUCKET):
-    log.warning(f"Bucket {DEFAULT_S3_BUCKET} not existed, creating...")
-    DEFAULT_MINIO_CLIENT.make_bucket(DEFAULT_S3_BUCKET)
+DEFAULT_MINIO_CLIENT = None
+
+
+def get_default_minio_client() -> Minio:
+    global DEFAULT_MINIO_CLIENT
+    if DEFAULT_MINIO_CLIENT is None:
+        log.info("Initializing DEFAULT_MINIO_CLIENT")
+        DEFAULT_MINIO_CLIENT = create_default_minio_client()
+        if not DEFAULT_MINIO_CLIENT.bucket_exists(DEFAULT_S3_BUCKET):
+            log.warning(f"Bucket {DEFAULT_S3_BUCKET} not existed, creating...")
+            DEFAULT_MINIO_CLIENT.make_bucket(DEFAULT_S3_BUCKET)
+    return DEFAULT_MINIO_CLIENT
