@@ -95,7 +95,9 @@ WSGI_APPLICATION = 'resman.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-if "MYSQL_CONFIG" in os.environ:
+USING_DB = "postgres"
+
+if USING_DB == "mysql":
     log.info("Using MySQL as database")
     mysql_config = urlparse(environ_get("MYSQL_CONFIG", "mysql://resman:resman_password@127.0.0.1:3306/"))
     db_config = {
@@ -109,12 +111,25 @@ if "MYSQL_CONFIG" in os.environ:
             'charset': 'utf8mb4'
         }
     }
-else:
+if USING_DB == "postgres":
+    log.info("Using PostgreSQL as database")
+    pg_config = urlparse(environ_get("PG_CONFIG", "postgres://resman:resman_password@127.0.0.1:5432/"))
+    db_config = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'resman',
+        'USER': unquote(pg_config.username),
+        'PASSWORD': unquote(pg_config.password),
+        'HOST': pg_config.hostname,
+        'PORT': pg_config.port if pg_config.port is not None else 5432,
+    }
+elif USING_DB == "sqlite3":
     log.info("Using SQLite3 as database")
     db_config = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': environ_get("SQLITE3_CONFIG", os.path.join(BASE_DIR, "db.sqlite3")),
     }
+else:
+    raise Exception(f"Unknown db type: {USING_DB}")
 
 DATABASES = {
     'default': db_config

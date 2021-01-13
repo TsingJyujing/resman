@@ -1,21 +1,32 @@
 version: "3.8"
 # Setting up development environment for local debugging
 services:
-#  db: # mysql://resman:resman_password@127.0.0.1:3306/
-#    image: tsingjyujing/mysql-lite:8
-#    environment:
-#      MYSQL_DATABASE: "resman"
-#      MYSQL_USER: "resman"
-#      MYSQL_PASSWORD: "resman_password"
-#      MYSQL_ROOT_PASSWORD: "root_password"
-#    command:
-#      - --default-authentication-plugin=mysql_native_password
-#      - --character-set-server=utf8mb4
-#      - --collation-server=utf8mb4_unicode_520_ci
-#    ports:
-#      - 3306:3306
-#    volumes:
-#      - db-data:/var/lib/mysql
+  db: # mysql://resman:resman_password@127.0.0.1:3306/
+    image: "mysql:8"
+    environment:
+      MYSQL_DATABASE: "resman"
+      MYSQL_USER: "resman"
+      MYSQL_PASSWORD: "resman_password"
+      MYSQL_ROOT_PASSWORD: "root_password"
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_520_ci
+    ports:
+      - 3306:3306
+    volumes:
+      - db-data:/var/lib/mysql
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: "resman"
+      POSTGRES_USER: "resman"
+      POSTGRES_PASSWORD: "resman_password"
+      MYSQL_ROOT_PASSWORD: "root_password"
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
   minio: # http://resman:resman_password@127.0.0.1:9000/
     image: minio/minio
     volumes:
@@ -45,5 +56,6 @@ services:
 #      "xpack.security.enabled": "true"
 volumes:
   s3-data:
-#  db-data:
+  db-data:
+  postgres-data:
 #  es-data:
