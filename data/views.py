@@ -198,15 +198,19 @@ class GetImageDataView(APIView):
     IMAGE_404_CONTENT_TYPE = magic.from_buffer("image/png", mime=True)
 
     def get(self, request: Request, image_id: int):
-        # TODO Using cache here
         try:
             im: DefaultS3Image = DefaultS3Image.objects.get(id=image_id)
             file_object = create_default_minio_client().get_object(
                 im.bucket,
                 im.object_name,
             )
-            return HttpResponse(
-                content=file_object.data,
+
+            def _wrapper():
+                yield from file_object.stream()
+                file_object.close()
+
+            return StreamingHttpResponse(
+                content=_wrapper(),
                 content_type=file_object.headers.get("Content-Type", im.content_type)
             )
         except DefaultS3Image.DoesNotExist:
