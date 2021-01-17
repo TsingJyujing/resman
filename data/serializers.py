@@ -26,7 +26,7 @@ class JSONDataSerializer(ModelSerializer):
 
 class ImageListSerializer(JSONDataSerializer):
     """
-    Serializer for ImageThread
+    Serializer for ImageList
     """
 
     class Meta:

@@ -1,42 +1,35 @@
 import React from 'react';
-import LazyLoad from 'react-lazy-load';
 import {CircularProgress, Container, Grid} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
 
-function Gallery({image_ids}) {
+function VideoGallery({video_ids}) {
+    // TODO add paginator
     return (
         <Grid container spacing={3}>
             {
-                image_ids.map(image_id => {
-                    const [height, setHeight] = React.useState(300);
-                    const onContentVisible = () => {
-                        setHeight("auto");
-                    };
-                    return (
-                        <Grid item spacing={3} lg={4} md={6} sm={12} xs={12}>
-                            <LazyLoad height={height}
-                                      offsetVertical={300}
-                                      onContentVisible={onContentVisible}
-                                      key={image_id}>
-                                <img src={`/api/image/${image_id}`} alt={image_id} loading={"lazy"} width={"100%"}/>
-                            </LazyLoad>
-                        </Grid>
-                    )
+                video_ids.map(video_id => {
+                    return (<Grid item lg={4} md={6} sm={12} xs={12}>
+                        <video controls width={"100%"}>
+                            <source src={`/api/video/${video_id}`}
+                                    type={"video/mp4"}/>
+                            {"Sorry, your browser doesn't support embedded videos."}
+                        </video>
+                    </Grid>);
                 })
             }
         </Grid>
     )
 }
 
-export default function ImageThread() {
+export default function VideoList() {
     const {id} = useParams();
     const [contextData, setContextData] = React.useState({});
     const {isLoading, error, data} = useQuery(
-        `/api/image_thread/${id}`,
+        `/api/videolist/${id}`,
         () => fetch(
-            `/api/image_thread/${id}`
+            `/api/videolist/${id}`
         ).then(
             (res) => res.json()
         ), {
@@ -67,7 +60,8 @@ export default function ImageThread() {
             <Typography variant={"h6"} gutterBottom>
                 {contextData.description || "Loading..."}
             </Typography>
-            <Gallery image_ids={(contextData.images || [])}/>
+            {/* TODO add reaction data here*/}
+            <VideoGallery video_ids={(contextData.videos || [])}/>
         </Container>
     );
 }

@@ -343,7 +343,7 @@ class GetImageDataView(APIView):
                 file_object.close()
 
             return StreamingHttpResponse(
-                content=_wrapper(),
+                streaming_content=_wrapper(),
                 content_type=file_object.headers.get("Content-Type", im.content_type)
             )
         except S3Image.DoesNotExist:
@@ -413,14 +413,15 @@ class GetVideoStream(APIView):
 class GetNovelPage(APIView):
     def get(self, request: Request, novel_id: int):
         novel: Novel = Novel.objects.get(id=novel_id)
-        page_size = int(request.query_params.get("n", "2000"))
+        page_size = int(request.query_params.get("n", "4000"))
         page_id = int(request.query_params.get("p", "1"))
         page_count = ceil(novel.get_size() / page_size)
         if page_id > page_count or page_id <= 0:
             raise Exception(f"Can't reach that page {page_id}")
         return Response({
-            "data": novel.read_range(
+            "text": novel.read_range(
                 (page_id - 1) * page_size,
                 page_id * page_size + 1
-            ).decode()
+            ).decode(errors="ignore"),
+            "page_count": page_count
         })

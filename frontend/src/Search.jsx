@@ -34,6 +34,8 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 
 import ImageIcon from '@material-ui/icons/Image';
+import VideoLibraryIcon from '@material-ui/icons/VideoLibrary';
+import MenuBookIcon from '@material-ui/icons/MenuBook';
 
 import Icon from "@material-ui/core/Icon";
 
@@ -51,26 +53,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function ImageSearchResults({query, page, pageSize, searchAccuracy}) {
-    if (query === "") {
-        return (
-            <Typography>
-                Ready for searching.
-            </Typography>
-        );
-    }
+function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy}) {
+
+    const queryCondition = query === "" ? {
+        "p": page,
+        "n": pageSize,
+    } : {
+        "q": query,
+        "p": page,
+        "n": pageSize,
+        "a": searchAccuracy
+    };
     const {isLoading, error, data} = useQuery(
-        `QueryImages(${query},${page},${pageSize},${searchAccuracy})`,
+        `Query(${searchRange})(${JSON.stringify(queryCondition)})`,
         () => fetch(
             createGetRequestUrl(
                 window.location,
-                "/api/image_thread",
-                {
-                    "q": query,
-                    "p": page,
-                    "n": pageSize,
-                    "a": searchAccuracy
-                }
+                `/api/${searchRange}`,
+                queryCondition
             ).toString()
         ).then(
             resp => resp.json()
@@ -98,7 +98,7 @@ function ImageSearchResults({query, page, pageSize, searchAccuracy}) {
                             title: postElement.title,
                             date: postElement.updated,
                             description: postElement.description,
-                            url: `/image/${postElement.id}`
+                            url: `/${searchRange}/${postElement.id}`
                         }}/>
                     ))
                 }
@@ -133,7 +133,7 @@ export default function Search() {
         modifyPageId(1);
     };
 
-    const [searchRange, setSearchRange] = React.useState('image');
+    const [searchRange, setSearchRange] = React.useState("imagelist");
     const handleSearchRangeChange = (event) => {
         setSearchRange(event.target.value);
         modifyPageId(1);
@@ -188,9 +188,9 @@ export default function Search() {
                                         onChange={handleSearchRangeChange}
                                         className={classes.rangeSelect}
                                     >
-                                        <MenuItem value={"image"}><ImageIcon/></MenuItem>
-                                        {/*<MenuItem value={"video"}><VideoLibraryIcon/></MenuItem>*/}
-                                        {/*<MenuItem value={"novel"}><MenuBookIcon/></MenuItem>*/}
+                                        <MenuItem value={"imagelist"}><ImageIcon/></MenuItem>
+                                        <MenuItem value={"videolist"}><VideoLibraryIcon/></MenuItem>
+                                        <MenuItem value={"novel"}><MenuBookIcon/></MenuItem>
                                     </Select>
                                 </InputAdornment>
                             )
@@ -252,7 +252,8 @@ export default function Search() {
                 </Grid>
             </Grid>
 
-            <ImageSearchResults
+            <ContentSearchResults
+                searchRange={searchRange}
                 query={query}
                 page={pageId}
                 pageSize={pageSize}

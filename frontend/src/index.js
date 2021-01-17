@@ -3,13 +3,15 @@ import ReactDOM from 'react-dom';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import {ThemeProvider} from '@material-ui/core/styles';
 import Search from "./Search";
-import ImageThread from "./ImageThread";
+import ImageList from "./ImageList";
 import BasicBarContainer from "./AppBasic";
 import theme from './theme';
 import {BrowserRouter as Router, Route, Switch, useLocation} from "react-router-dom";
 import {Container} from "@material-ui/core";
 import ResultItem from "./ResultItem";
 import {QueryClient, QueryClientProvider} from "react-query";
+import Novel from "./Novel";
+import VideoList from "./VideoList";
 
 const queryClient = new QueryClient();
 
@@ -52,9 +54,10 @@ ReactDOM.render(
             <QueryClientProvider client={queryClient}>
                 <BasicBarContainer>
                     <Switch>
-                        <Route exact path={"/"}><Home/></Route>
-                        <Route exact path="/image"><Search/></Route>
-                        <Route path="/image/:id"><ImageThread/></Route>
+                        <Route exact path={"/"}><Search/></Route>
+                        <Route path="/imagelist/:id"><ImageList/></Route>
+                        <Route path="/videolist/:id"><VideoList/></Route>
+                        <Route path="/novel/:id"><Novel/></Route>
                         <Route path="*">
                             <NoMatch/>
                         </Route>
