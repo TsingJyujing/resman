@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'resman.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-USING_DB = "postgres"
+USING_DB = "sqlite3"
 
 if USING_DB == "mysql":
     log.info("Using MySQL as database")

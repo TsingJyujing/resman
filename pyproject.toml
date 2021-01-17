@@ -33,6 +33,7 @@ psycopg2 = "^2.8.6"
 pymongo = "^3.11.2"
 word2vec = "^0.11.1"
 pandas = "^1.2.0"
+pytest = "^6.2.1"
 
 [build-system]
 requires = ["poetry>=0.12"]

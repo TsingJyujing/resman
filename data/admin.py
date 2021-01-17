@@ -3,10 +3,15 @@ from django.contrib import admin
 # Register your models here.
 
 from .models import (
-    ImageThread,
-    DefaultS3Image,
-    ReactionImageThread,
+    ImageList,
+    VideoList,
+    Novel,
+    S3Image,
+    S3Video,
 )
-admin.site.register(ImageThread)
-admin.site.register(ReactionImageThread)
-admin.site.register(DefaultS3Image)
+
+admin.site.register(VideoList)
+admin.site.register(Novel)
+admin.site.register(ImageList)
+admin.site.register(S3Image)
+admin.site.register(S3Video)

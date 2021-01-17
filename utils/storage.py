@@ -1,4 +1,6 @@
 import logging
+from io import BytesIO
+from typing import Iterator
 from urllib.parse import urlparse, unquote
 
 from minio import Minio
@@ -39,3 +41,30 @@ def get_default_minio_client() -> Minio:
             log.warning(f"Bucket {DEFAULT_S3_BUCKET} not existed, creating...")
             DEFAULT_MINIO_CLIENT.make_bucket(DEFAULT_S3_BUCKET)
     return DEFAULT_MINIO_CLIENT
+
+
+def get_size(bucket_name: str, object_name: str) -> int:
+    mc = get_default_minio_client()
+    return mc.stat_object(bucket_name, object_name).size
+
+
+def read_range_stream(bucket_name: str, object_name: str, start_byte: int = 0, end_byte: int = None) -> Iterator[bytes]:
+    mc = get_default_minio_client()
+    filesize = get_size(bucket_name, object_name)
+    if end_byte is None:
+        length = filesize
+    else:
+        length = end_byte - start_byte + 1
+    obj = mc.get_object(
+        bucket_name, object_name,
+        offset=start_byte, length=length
+    )
+    yield from obj.stream()
+
+
+def read_range(bucket_name: str, object_name: str, start_byte: int = 0, end_byte: int = None) -> bytes:
+    with BytesIO() as fp:
+        for ch in read_range_stream(bucket_name, object_name, start_byte, end_byte):
+            fp.write(ch)
+        fp.seek(0)
+        return fp.read()
