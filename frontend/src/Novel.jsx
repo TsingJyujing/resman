@@ -4,10 +4,12 @@ import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
 import {createGetRequestUrl} from "./Utility";
-
-
-import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
+import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import BottomNavigation from "@material-ui/core/BottomNavigation";
+import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
+import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
+import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 
 function NovelPage({novelId}) {
     const pageSize = 4000;
@@ -16,7 +18,16 @@ function NovelPage({novelId}) {
     const handleChangePageId = (event) => {
         setPageId(event.target.value);
     };
-
+    const handlePreviousPage = () => {
+        if (pageId > 1) {
+            setPageId(pageId - 1)
+        }
+    };
+    const handleNextPage = () => {
+        if (pageId < pageCount) {
+            setPageId(pageId + 1);
+        }
+    }
 
     const {isLoading, error, data} = useQuery(
         `novel-page-${novelId}-${pageId}-${pageSize}`,
@@ -45,28 +56,20 @@ function NovelPage({novelId}) {
         </Typography>);
     }
 
-    const handlePreviousPage = () => {
-        if (pageId > 1) {
-            setPageId(pageId - 1)
-        }
-    };
-    const handleNextPage = () => {
-        if (pageId < data["page_count"]) {
-            setPageId(pageId + 1);
-        }
-    }
+    const pageCount = data["page_count"];
 
     return (
         <Grid container spacing={3}>
             <Grid item spacing={3} xs={12}>
-                <Typography gutterBottom variant={"body1"}>{
+                <Typography gutterBottom variant={"body2"}>{
                     data["text"].split("\n").flatMap(text => {
                         return [text, <br/>]
                     })
                 }</Typography>
             </Grid>
+
             <Grid item spacing={3} xs={4}>
-                <Button variant="contained" color="default" fullWidth
+                <Button variant="contained" color={pageId <= 1 ? "default" : "primary"} fullWidth
                         onClick={handlePreviousPage}>
                     <NavigateBeforeIcon/>
                 </Button>
@@ -79,20 +82,19 @@ function NovelPage({novelId}) {
                     fullWidth
                 >
                     {
-                        [...Array(data["page_count"]).keys()].map(
+                        [...Array(pageCount).keys()].map(
                             i => (<MenuItem value={i + 1}>{i + 1}</MenuItem>)
                         )
                     }
                 </Select>
             </Grid>
             <Grid item spacing={3} xs={4}>
-                <Button variant="contained" color="primary" fullWidth
+                <Button variant="contained" color={pageId >= pageCount ? "default" : "primary"} fullWidth
                         onClick={handleNextPage}>
                     <NavigateNextIcon/>
                 </Button>
             </Grid>
         </Grid>
-
     );
 }
 
@@ -132,6 +134,25 @@ export default function Novel() {
                 {contextData.title || "Loading..."}
             </Typography>
             <NovelPage novelId={id}/>
+            <Grid container>
+                <Grid item xs={12}>
+                    {/*TODO add change reaction and refresh data*/}
+                    <BottomNavigation showLabels>
+                        <BottomNavigationAction
+                            label={contextData.like_count}
+                            icon={<ThumbUpAltIcon color={
+                                contextData["positive_reaction"] === true ? "primary" : "disabled"
+                            }/>}
+                        />
+                        <BottomNavigationAction
+                            label={contextData.dislike_count}
+                            icon={<ThumbDownAltIcon color={
+                                contextData["positive_reaction"] === false ? "primary" : "disabled"
+                            }/>}
+                        />
+                    </BottomNavigation>
+                </Grid>
+            </Grid>
         </Container>
     );
 }

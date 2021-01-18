@@ -203,7 +203,7 @@ export default function BasicContainer(props) {
                         className={clsx(classes.menuButton, drawerOpen && classes.hide)}
                         color="inherit"
                         aria-label="open drawer"
-                        onClick={handleDrawerChangeStatus}
+                        // onClick={handleDrawerChangeStatus} TODO recovery after finished drawer items
                     >
                         <MenuIcon/>
                     </IconButton>
@@ -243,21 +243,21 @@ export default function BasicContainer(props) {
                 </div>
                 <Divider/>
                 <List>
-                    {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                        <ListItem button key={text}>
-                            <ListItemIcon>{index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}</ListItemIcon>
-                            <ListItemText primary={text}/>
-                        </ListItem>
-                    ))}
+                    {/*{['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (*/}
+                    {/*    <ListItem button key={text}>*/}
+                    {/*        <ListItemIcon>{index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}</ListItemIcon>*/}
+                    {/*        <ListItemText primary={text}/>*/}
+                    {/*    </ListItem>*/}
+                    {/*))}*/}
                 </List>
                 <Divider/>
                 <List>
-                    {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                        <ListItem button key={text}>
-                            <ListItemIcon>{index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}</ListItemIcon>
-                            <ListItemText primary={text}/>
-                        </ListItem>
-                    ))}
+                    {/*{['All mail', 'Trash', 'Spam'].map((text, index) => (*/}
+                    {/*    <ListItem button key={text}>*/}
+                    {/*        <ListItemIcon>{index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}</ListItemIcon>*/}
+                    {/*        <ListItemText primary={text}/>*/}
+                    {/*    </ListItem>*/}
+                    {/*))}*/}
                 </List>
             </Drawer>
             <div className={classes.drawerHeader}/>

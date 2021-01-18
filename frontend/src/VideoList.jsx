@@ -3,9 +3,12 @@ import {CircularProgress, Container, Grid} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
+import BottomNavigation from "@material-ui/core/BottomNavigation";
+import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
+import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
+import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 
 function VideoGallery({video_ids}) {
-    // TODO add paginator
     return (
         <Grid container spacing={3}>
             {
@@ -60,8 +63,28 @@ export default function VideoList() {
             <Typography variant={"h6"} gutterBottom>
                 {contextData.description || "Loading..."}
             </Typography>
-            {/* TODO add reaction data here*/}
+
             <VideoGallery video_ids={(contextData.videos || [])}/>
+
+            <Grid container>
+                <Grid item xs={12}>
+                    {/*TODO add change reaction and refresh data*/}
+                    <BottomNavigation showLabels>
+                        <BottomNavigationAction
+                            label={contextData.like_count}
+                            icon={<ThumbUpAltIcon color={
+                                contextData["positive_reaction"] === true ? "primary" : "disabled"
+                            }/>}
+                        />
+                        <BottomNavigationAction
+                            label={contextData.dislike_count}
+                            icon={<ThumbDownAltIcon color={
+                                contextData["positive_reaction"] === false ? "primary" : "disabled"
+                            }/>}
+                        />
+                    </BottomNavigation>
+                </Grid>
+            </Grid>
         </Container>
     );
 }
