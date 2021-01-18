@@ -167,6 +167,15 @@ class NovelViewSet(MediaViewSet):
         serializer.save(owner=self.request.user, bucket=DEFAULT_S3_BUCKET, object_name=object_name)
         self.search_engine_create(serializer.instance)
 
+    def retrieve(self, request, *args, **kwargs):
+        return Response(self.serialize_with_reaction(self.get_object(), self.request.user))
+
+    def destroy(self, request, pk=None):
+        novel: Novel = Novel.objects.get(id=pk)
+        get_default_minio_client().remove_object(novel.bucket, novel.object_name)
+        response = super().destroy(request, pk=pk)
+        return response
+
 
 class BaseUserReactionView(APIView):
 
