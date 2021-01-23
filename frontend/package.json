@@ -16,6 +16,7 @@
     "@material-ui/core": "latest",
     "@material-ui/icons": "latest",
     "clsx": "latest",
+    "jquery": "^3.5.1",
     "react": "latest",
     "react-dom": "latest",
     "react-grid-gallery": "^0.5.5",

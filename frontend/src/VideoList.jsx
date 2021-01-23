@@ -7,6 +7,7 @@ import BottomNavigation from "@material-ui/core/BottomNavigation";
 import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
+import {createReactionOperations} from "./Utility";
 
 function VideoGallery({video_ids}) {
     return (
@@ -28,9 +29,11 @@ function VideoGallery({video_ids}) {
 
 export default function VideoList() {
     const {id} = useParams();
-    const [contextData, setContextData] = React.useState({});
+    const [cacheBurst, setCacheBurst] = React.useState(1);
+
+
     const {isLoading, error, data} = useQuery(
-        `/api/videolist/${id}`,
+        `/api/videolist/${id}-${cacheBurst}`,
         () => fetch(
             `/api/videolist/${id}`
         ).then(
@@ -51,36 +54,42 @@ export default function VideoList() {
             </Typography>
         );
     }
-    if (Object.keys(contextData).length <= 0) {
-        setContextData(data);
-    }
+
+
+    const reactionOperations = createReactionOperations(
+        data["positive_reaction"],
+        `/api/videolist/${id}/reaction`,
+        () => setCacheBurst(cacheBurst + 1)
+    )
+
     return (
         <Container maxWidth={"lg"}>
             <br/>
             <Typography variant={"h4"} gutterBottom>
-                {contextData.title || "Loading..."}
+                {data.title || "Loading..."}
             </Typography>
             <Typography variant={"h6"} gutterBottom>
-                {contextData.description || "Loading..."}
+                {data.description || "Loading..."}
             </Typography>
 
-            <VideoGallery video_ids={(contextData.videos || [])}/>
+            <VideoGallery video_ids={(data.videos || [])}/>
 
             <Grid container>
                 <Grid item xs={12}>
-                    {/*TODO add change reaction and refresh data*/}
                     <BottomNavigation showLabels>
                         <BottomNavigationAction
-                            label={contextData.like_count}
+                            label={data.like_count}
                             icon={<ThumbUpAltIcon color={
-                                contextData["positive_reaction"] === true ? "primary" : "disabled"
+                                data["positive_reaction"] === true ? "primary" : "disabled"
                             }/>}
+                            onClick={reactionOperations.clickLike}
                         />
                         <BottomNavigationAction
-                            label={contextData.dislike_count}
+                            label={data.dislike_count}
                             icon={<ThumbDownAltIcon color={
-                                contextData["positive_reaction"] === false ? "primary" : "disabled"
+                                data["positive_reaction"] === false ? "primary" : "disabled"
                             }/>}
+                            onClick={reactionOperations.clickDislike}
                         />
                     </BottomNavigation>
                 </Grid>

@@ -3,7 +3,7 @@ import {Button, CircularProgress, Container, Grid, MenuItem, Select} from "@mate
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
-import {createGetRequestUrl} from "./Utility";
+import {createGetRequestUrl, createReactionOperations} from "./Utility";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import BottomNavigation from "@material-ui/core/BottomNavigation";
@@ -100,7 +100,7 @@ function NovelPage({novelId}) {
 
 export default function Novel() {
     const {id} = useParams();
-    const [contextData, setContextData] = React.useState({});
+    const [cacheBurst, setCacheBurst] = React.useState(1);
 
     const {isLoading, error, data} = useQuery(
         `/api/novel/${id}`,
@@ -118,37 +118,40 @@ export default function Novel() {
     if (error) {
         return (
             <Typography>
-                {
-                    "An error has occurred: " + JSON.stringify(error)
-                }
+                {"An error has occurred: " + JSON.stringify(error)}
             </Typography>
         );
     }
-    if (Object.keys(contextData).length <= 0) {
-        setContextData(data);
-    }
+
+    const reactionOperations = createReactionOperations(
+        data["positive_reaction"],
+        `/api/novel/${id}/reaction`,
+        () => setCacheBurst(cacheBurst + 1)
+    )
+
     return (
         <Container maxWidth={"lg"}>
             <br/>
             <Typography variant={"h4"} gutterBottom>
-                {contextData.title || "Loading..."}
+                {data.title || "Loading..."}
             </Typography>
             <NovelPage novelId={id}/>
             <Grid container>
                 <Grid item xs={12}>
-                    {/*TODO add change reaction and refresh data*/}
                     <BottomNavigation showLabels>
                         <BottomNavigationAction
-                            label={contextData.like_count}
+                            label={data.like_count}
                             icon={<ThumbUpAltIcon color={
-                                contextData["positive_reaction"] === true ? "primary" : "disabled"
+                                data["positive_reaction"] === true ? "primary" : "disabled"
                             }/>}
+                            onClick={reactionOperations.clickLike}
                         />
                         <BottomNavigationAction
-                            label={contextData.dislike_count}
+                            label={data.dislike_count}
                             icon={<ThumbDownAltIcon color={
-                                contextData["positive_reaction"] === false ? "primary" : "disabled"
+                                data["positive_reaction"] === false ? "primary" : "disabled"
                             }/>}
+                            onClick={reactionOperations.clickDislike}
                         />
                     </BottomNavigation>
                 </Grid>

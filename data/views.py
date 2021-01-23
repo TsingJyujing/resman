@@ -201,7 +201,7 @@ class BaseUserReactionView(APIView):
             else:
                 rit.delete()
         elif positive_reaction is not None:
-            ReactionToImageList.objects.create(
+            self.get_reaction_class().objects.create(
                 owner=self.request.user,
                 thread=self.get_object_class().objects.get(id=thread_id),
                 positive_reaction=positive_reaction
@@ -213,7 +213,7 @@ class BaseUserReactionView(APIView):
 
     def get(self, request: Request, thread_id: int):
         positive_reaction = None
-        rit = ReactionToImageList.objects.filter(
+        rit = self.get_reaction_class().objects.filter(
             owner=self.request.user,
             thread=self.get_object_class().objects.get(id=thread_id),
         ).first()
