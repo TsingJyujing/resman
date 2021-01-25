@@ -18,7 +18,7 @@ router.register(r"videolist", viewset=VideoListViewSet, basename="videolist")
 router.register(r"novel", viewset=NovelViewSet, basename="novel")
 urlpatterns = [
     path("auth", include("rest_framework.urls")),
-    path("", include(router.urls)),
+
     path("imagelist/<int:thread_id>/reaction", ImageListUserReactionView.as_view()),
     path("videolist/<int:thread_id>/reaction", VideoListUserReactionView.as_view()),
     path("novel/<int:thread_id>/reaction", NovelUserReactionView.as_view()),
@@ -29,5 +29,5 @@ urlpatterns = [
 
     path("image/upload", UploadS3ImageView.as_view()),
     path("video/upload", UploadS3VideoView.as_view()),
-
+    path("", include(router.urls)),
 ]

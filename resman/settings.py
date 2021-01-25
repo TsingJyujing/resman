@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'xmg@8-2c-03^@3e9qrdtuu$-@j2)m^7xd(+g6u08u9vqb0ldmv'
 
-# FIXME SECURITY WARNING: don't run with debug turned on in production!
+DEV_MODE = int(os.environ.get("DEV_MODE", "0")) != 0
 DEBUG = True
 
 
@@ -37,7 +37,7 @@ def environ_get(variable_name: str, default_value: str = None):
     :param default_value: Default value in debug mode
     :return:
     """
-    if not (variable_name in os.environ or DEBUG):
+    if not (variable_name in os.environ or DEV_MODE):
         raise KeyError(f"Environment variable {variable_name} not set in production model")
     return os.environ.get(variable_name, default_value)
 
@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'resman.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-USING_DB = "sqlite3"
+USING_DB = environ_get("USING_DB", "sqlite3")
 
 if USING_DB == "mysql":
     log.info("Using MySQL as database")
@@ -193,7 +193,4 @@ WHOOSH_PATH = environ_get(
     os.path.join(BASE_DIR, "whoosh_index")
 )
 if not os.path.isdir(WHOOSH_PATH):
-    if DEBUG:
-        os.makedirs(WHOOSH_PATH)
-    else:
-        raise Exception(f"Whoosh path {WHOOSH_PATH} not existed")
+    os.makedirs(WHOOSH_PATH)

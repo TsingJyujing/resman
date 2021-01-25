@@ -10,6 +10,20 @@
 
 ## 运行方法
 
+环境变量配置
+
+|变量名称|说明|例子|
+|---|---|---|
+|DEV_MODE|0-部署模式，非0-调试模式|1|
+|USING_DB|数据库类型，sqlite3/mysql/postgres|sqlite3|
+|MYSQL_CONFIG|MySQL 数据连接配置|mysql://resman:resman_password@127.0.0.1:3306/|
+|SQLITE3_CONFIG|SQLite3 数据库文件路径|/app/db.sqlite3|
+|PG_CONFIG|MySQL 数据连接配置|postgres://resman:resman_password@127.0.0.1:5432/|
+|S3_CONFIG|S3 文件系统配置|http://resman:resman_password@127.0.0.1:9000/|
+|S3_BUCKET|S3 Bucket|resman|
+|WHOOSH_PATH|Whoosh 索引路径|/app/whoosh_index/|
+
+
 ## 参考资料
 
 ### 中文自然语言处理
