@@ -14,6 +14,38 @@ import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
 import {createReactionOperations} from "./Utility";
 
 function Gallery({image_ids}) {
+    return (
+        <Container>
+            <Grid container spacing={3}>
+                {
+                    image_ids.map(image_id => {
+                        const [height, setHeight] = React.useState(300);
+                        const onContentVisible = () => setHeight("auto");
+                        return (
+                            <Grid item spacing={3} lg={4} md={6} sm={12} xs={12}>
+                                <LazyLoad height={height}
+                                          offsetVertical={300}
+                                          onContentVisible={onContentVisible}
+                                          key={image_id}>
+                                    <img src={`/api/image/${image_id}`} alt={image_id} loading={"lazy"}
+                                         width={"100%"}/>
+                                </LazyLoad>
+                            </Grid>
+                        )
+                    })
+                }
+            </Grid>
+        </Container>
+    );
+}
+
+/**
+ * Deprecated
+ * @param image_ids
+ * @returns {JSX.Element}
+ * @constructor
+ */
+function GalleryWithPaginator({image_ids}) {
     const pageSize = 24;
     const [pageId, setPageId] = React.useState(1);
     const pageCount = Math.ceil(image_ids.length / pageSize)
@@ -32,28 +64,29 @@ function Gallery({image_ids}) {
             setPageId(pageId + 1);
         }
     }
+
+    const slicedImages = image_ids.slice((pageId - 1) * pageSize, pageId * pageSize);
+
     return (
         <Container>
             <Grid container spacing={3}>
                 {
-                    image_ids.slice((pageId - 1) * pageSize, pageId * pageSize).map(image_id => {
+                    slicedImages.map(image_id => {
                         const [height, setHeight] = React.useState(300);
-                        const onContentVisible = () => {
-                            setHeight("auto");
-                        };
+                        const onContentVisible = () => setHeight("auto");
                         return (
                             <Grid item spacing={3} lg={4} md={6} sm={12} xs={12}>
                                 <LazyLoad height={height}
                                           offsetVertical={300}
                                           onContentVisible={onContentVisible}
                                           key={image_id}>
-                                    <img src={`/api/image/${image_id}`} alt={image_id} loading={"lazy"} width={"100%"}/>
+                                    <img src={`/api/image/${image_id}`} alt={image_id} loading={"lazy"}
+                                         width={"100%"}/>
                                 </LazyLoad>
                             </Grid>
                         )
                     })
                 }
-
             </Grid>
             <Grid container spacing={3}>
                 <Grid item spacing={3} xs={4}>
@@ -84,7 +117,9 @@ function Gallery({image_ids}) {
                 </Grid>
             </Grid>
         </Container>
-    )
+    );
+
+
 }
 
 export default function ImageList() {
@@ -107,9 +142,7 @@ export default function ImageList() {
     if (error) {
         return (
             <Typography>
-                {
-                    "An error has occurred: " + JSON.stringify(error)
-                }
+                {"An error has occurred: " + JSON.stringify(error)}
             </Typography>
         );
     }
@@ -126,9 +159,10 @@ export default function ImageList() {
                 {data.title || "Loading..."}
             </Typography>
             <Typography variant={"h6"} gutterBottom>
-                {data.description || "Loading..."}
+                {data.description}
             </Typography>
-            <Gallery image_ids={(data.images || [])}/>
+
+            <Gallery image_ids={data.images}/>
 
             <Grid container>
                 <Grid item xs={12}>
