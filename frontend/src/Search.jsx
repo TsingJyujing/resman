@@ -53,16 +53,18 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy}) {
+function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy, similarWords}) {
 
     const queryCondition = query === "" ? {
         "p": page,
         "n": pageSize,
+        "sw": similarWords
     } : {
         "q": query,
         "p": page,
         "n": pageSize,
-        "a": searchAccuracy
+        "a": searchAccuracy,
+        "sw": similarWords
     };
     const {isLoading, error, data} = useQuery(
         `Query(${searchRange})(${JSON.stringify(queryCondition)})`,
@@ -130,6 +132,12 @@ export default function Search() {
     const handleSearchAccuracyChange = (event) => {
         console.log(`SearchAccuracy ${searchAccuracy} => ${event.target.value}`);
         setSearchAccuracy(event.target.value);
+        modifyPageId(1);
+    };
+
+    const [similarWords, setSimilarWords] = React.useState('10');
+    const handleSimilarWordsChange = (event) => {
+        setSimilarWords(event.target.value);
         modifyPageId(1);
     };
 
@@ -229,6 +237,7 @@ export default function Search() {
                                         <MenuItem value={"or"}>Or</MenuItem>
                                         <MenuItem value={"andmaybe"}>And Maybe</MenuItem>
                                         <MenuItem value={"and"}>And</MenuItem>
+                                        <MenuItem value={"contains"}>Contains</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -247,6 +256,24 @@ export default function Search() {
                                     </Select>
                                 </FormControl>
                             </Grid>
+                            <Grid item xs={12} md={6} sm={6}>
+                                <FormControl fullWidth>
+                                    <InputLabel id="similar-words-select-label">Similar Words</InputLabel>
+                                    <Select
+                                        labelId="similar-words-select-label"
+                                        id="similar-words"
+                                        value={similarWords}
+                                        onChange={handleSimilarWordsChange}
+                                    >
+                                        <MenuItem value={0}>0</MenuItem>
+                                        <MenuItem value={1}>1</MenuItem>
+                                        <MenuItem value={2}>2</MenuItem>
+                                        <MenuItem value={5}>5</MenuItem>
+                                        <MenuItem value={10}>10</MenuItem>
+                                        <MenuItem value={20}>20</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Grid>
                         </AccordionDetails>
                     </Accordion>
                 </Grid>
@@ -258,6 +285,7 @@ export default function Search() {
                 page={pageId}
                 pageSize={pageSize}
                 searchAccuracy={searchAccuracy}
+                similarWords={similarWords}
             />
 
             <Grid container spacing={3}>
