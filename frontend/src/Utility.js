@@ -7,7 +7,7 @@ export function createGetRequestUrl(baseUrl, path, queryParameters) {
     return url;
 }
 
-function getCookie(name) {
+export function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
@@ -64,8 +64,8 @@ export function createReactionOperations(
     };
 }
 
-export function deleteContent(url){
-    if (confirm("Are you sure to delete?")){
+export function deleteContent(url) {
+    if (confirm("Are you sure to delete?")) {
         return fetch(
             url,
             {
@@ -77,10 +77,14 @@ export function deleteContent(url){
                 },
                 redirect: 'follow',
             }
-        ).then(response=>{
+        ).then(response => {
             console.log(`${url} deleted successfully`);
             console.log(response);
-            alert("Deleted successfully")
+            if (response.ok) {
+                alert("Deleted successfully")
+            } else {
+                alert("Deleted failed.")
+            }
         })
     }
 }
