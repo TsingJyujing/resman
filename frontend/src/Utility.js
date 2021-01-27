@@ -63,3 +63,24 @@ export function createReactionOperations(
         }
     };
 }
+
+export function deleteContent(url){
+    if (confirm("Are you sure to delete?")){
+        return fetch(
+            url,
+            {
+                method: 'DELETE',
+                cache: 'no-cache',
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                redirect: 'follow',
+            }
+        ).then(response=>{
+            console.log(`${url} deleted successfully`);
+            console.log(response);
+            alert("Deleted successfully")
+        })
+    }
+}

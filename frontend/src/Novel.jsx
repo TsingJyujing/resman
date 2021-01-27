@@ -3,13 +3,14 @@ import {Button, CircularProgress, Container, Grid, MenuItem, Select} from "@mate
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
-import {createGetRequestUrl, createReactionOperations} from "./Utility";
+import {createGetRequestUrl, createReactionOperations, deleteContent} from "./Utility";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import BottomNavigation from "@material-ui/core/BottomNavigation";
 import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 function NovelPage({novelId}) {
     const pageSize = 4000;
@@ -133,7 +134,7 @@ export default function Novel() {
         <Container maxWidth={"lg"}>
             <br/>
             <Typography variant={"h4"} gutterBottom>
-                {data.title || "Loading..."}
+                {data.title || "No title"}
             </Typography>
             <NovelPage novelId={id}/>
             <Grid container>
@@ -152,6 +153,11 @@ export default function Novel() {
                                 data["positive_reaction"] === false ? "primary" : "disabled"
                             }/>}
                             onClick={reactionOperations.clickDislike}
+                        />
+                        <BottomNavigationAction
+                            label={"Delete"}
+                            icon={<DeleteIcon color={"error"}/>}
+                            onClick={()=>deleteContent(`/api/novel/${id}`)}
                         />
                     </BottomNavigation>
                 </Grid>

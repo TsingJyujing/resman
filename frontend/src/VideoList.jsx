@@ -7,17 +7,17 @@ import BottomNavigation from "@material-ui/core/BottomNavigation";
 import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
-import {createReactionOperations} from "./Utility";
+import {createReactionOperations, deleteContent} from "./Utility";
+import DeleteIcon from '@material-ui/icons/Delete';
 
 function VideoGallery({video_ids}) {
     return (
         <Grid container spacing={3}>
             {
                 video_ids.map(video_id => {
-                    return (<Grid item lg={4} md={6} sm={12} xs={12}>
+                    return (<Grid item lg={12} md={12} sm={12} xs={12}>
                         <video controls width={"100%"}>
-                            <source src={`/api/video/${video_id}`}
-                                    type={"video/mp4"}/>
+                            <source src={`/api/video/${video_id}`} type={"video/mp4"}/>
                             {"Sorry, your browser doesn't support embedded videos."}
                         </video>
                     </Grid>);
@@ -66,10 +66,10 @@ export default function VideoList() {
         <Container maxWidth={"lg"}>
             <br/>
             <Typography variant={"h4"} gutterBottom>
-                {data.title || "Loading..."}
+                {data.title || "No title"}
             </Typography>
             <Typography variant={"h6"} gutterBottom>
-                {data.description || "Loading..."}
+                {data.description || "No description"}
             </Typography>
 
             <VideoGallery video_ids={(data.videos || [])}/>
@@ -90,6 +90,11 @@ export default function VideoList() {
                                 data["positive_reaction"] === false ? "primary" : "disabled"
                             }/>}
                             onClick={reactionOperations.clickDislike}
+                        />
+                        <BottomNavigationAction
+                            label={"Delete"}
+                            icon={<DeleteIcon color={"error"}/>}
+                            onClick={()=>deleteContent(`/api/videolist/${id}`)}
                         />
                     </BottomNavigation>
                 </Grid>

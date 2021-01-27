@@ -11,7 +11,8 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
-import {createReactionOperations} from "./Utility";
+import {createReactionOperations, deleteContent} from "./Utility";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 function Gallery({image_ids}) {
     return (
@@ -180,6 +181,11 @@ export default function ImageList() {
                                 data["positive_reaction"] === false ? "primary" : "disabled"
                             }/>}
                             onClick={reactionOperations.clickDislike}
+                        />
+                        <BottomNavigationAction
+                            label={"Delete"}
+                            icon={<DeleteIcon color={"error"}/>}
+                            onClick={()=>deleteContent(`/api/imagelist/${id}`)}
                         />
                     </BottomNavigation>
                 </Grid>
