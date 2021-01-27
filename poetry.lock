@@ -251,6 +251,38 @@ url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
 reference = "tsingjyujing"
 
 [[package]]
+name = "ffmpeg-python"
+version = "0.2.0"
+description = "Python bindings for FFmpeg - with complex filtering support"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+future = "*"
+
+[package.extras]
+dev = ["future (==0.17.1)", "numpy (==1.16.4)", "pytest-mock (==1.10.4)", "pytest (==4.6.1)", "Sphinx (==2.1.0)", "tox (==3.12.1)"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
+reference = "tsingjyujing"
+
+[[package]]
+name = "future"
+version = "0.18.2"
+description = "Clean single-source support for Python 3 and 2"
+category = "main"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[package.source]
+type = "legacy"
+url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
+reference = "tsingjyujing"
+
+[[package]]
 name = "gensim"
 version = "3.8.3"
 description = "Python framework for fast Vector Space Modelling"
@@ -739,6 +771,22 @@ url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
 reference = "tsingjyujing"
 
 [[package]]
+name = "requests-toolbelt"
+version = "0.9.1"
+description = "A utility belt for advanced users of python-requests"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+requests = ">=2.0.1,<3.0.0"
+
+[package.source]
+type = "legacy"
+url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
+reference = "tsingjyujing"
+
+[[package]]
 name = "ruamel.yaml"
 version = "0.16.12"
 description = "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order"
@@ -1008,7 +1056,7 @@ reference = "tsingjyujing"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "ff9c07f00e1bd0ad0afac0f9c30b24a7156bc0ed8208c2b94a6ad05821f3b307"
+content-hash = "b2bfc502482be05791994f011732337d827c8d85ab24ea453e6cf4966a1ac2c9"
 
 [metadata.files]
 asgiref = [
@@ -1069,6 +1117,13 @@ djangorestframework = [
 drf-yasg = [
     {file = "drf-yasg-1.20.0.tar.gz", hash = "sha256:d50f197c7f02545d0b736df88c6d5cf874f8fea2507ad85ad7de6ae5bf2d9e5a"},
     {file = "drf_yasg-1.20.0-py2.py3-none-any.whl", hash = "sha256:8b72e5b1875931a8d11af407be3a9a5ba8776541492947a0df5bafda6b7f8267"},
+]
+ffmpeg-python = [
+    {file = "ffmpeg-python-0.2.0.tar.gz", hash = "sha256:65225db34627c578ef0e11c8b1eb528bb35e024752f6f10b78c011f6f64c4127"},
+    {file = "ffmpeg_python-0.2.0-py3-none-any.whl", hash = "sha256:ac441a0404e053f8b6a1113a77c0f452f1cfc62f6344a769475ffdc0f56c23c5"},
+]
+future = [
+    {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
 gensim = [
     {file = "gensim-3.8.3-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:61eed1d6b5fbe6dda0586ea447ebc2dc7890a7f70c2ed953d5abc3fe3cfb94bb"},
@@ -1458,6 +1513,10 @@ pytz = [
 requests = [
     {file = "requests-2.25.1-py2.py3-none-any.whl", hash = "sha256:c210084e36a42ae6b9219e00e48287def368a26d03a048ddad7bfee44f75871e"},
     {file = "requests-2.25.1.tar.gz", hash = "sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804"},
+]
+requests-toolbelt = [
+    {file = "requests-toolbelt-0.9.1.tar.gz", hash = "sha256:968089d4584ad4ad7c171454f0a5c6dac23971e9472521ea3b6d49d610aa6fc0"},
+    {file = "requests_toolbelt-0.9.1-py2.py3-none-any.whl", hash = "sha256:380606e1d10dc85c3bd47bf5a6095f815ec007be7a8b69c878507068df059e6f"},
 ]
 "ruamel.yaml" = [
     {file = "ruamel.yaml-0.16.12-py2.py3-none-any.whl", hash = "sha256:012b9470a0ea06e4e44e99e7920277edf6b46eee0232a04487ea73a7386340a5"},

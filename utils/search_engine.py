@@ -122,8 +122,8 @@ class SearchableModelViewSet(ModelViewSet):
         self.search_engine_create(serializer.instance)
 
     def destroy(self, request, *args, **kwargs):
+        self.search_engine_delete(pk=str(self.get_object().id))
         response = super().destroy(request, *args, **kwargs)
-        self.search_engine_delete(pk=self.get_object().id)
         return response
 
     def update(self, request, *args, **kwargs):

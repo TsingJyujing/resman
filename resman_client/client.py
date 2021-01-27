@@ -10,6 +10,7 @@ import requests
 from pydantic import BaseModel
 from requests import Response
 from requests.auth import HTTPBasicAuth
+from requests_toolbelt.multipart import encoder
 
 
 class DefaultS3Image(BaseModel):
@@ -157,17 +158,19 @@ class VideoListClient(BaseMediaClient):
     def __init__(self, endpoint: str, user: str, password: str, object_id: int):
         super().__init__(endpoint, user, password, object_id)
 
-    def upload_h264_video(self, fp: BinaryIO, order: int = 0):
-        self.post(
-            "api/video/upload",
-            data={
-                "video_list_id": self.object_id,
-                "order": order
-            },
-            files={
-                "file": ("data.mp4", fp, "video/mp4")
-            }
-        ).raise_for_status()
+    def upload_mp4_video(self, filename: str, order: int = 0):
+        with open(filename, "rb") as fp:
+            form = encoder.MultipartEncoder({
+                "file": ("data.csv", fp, "video/mp4"),
+                "video_list_id": str(self.object_id),
+                "order": str(order)
+            })
+            headers = {"Prefer": "respond-async", "Content-Type": form.content_type}
+            self.post(
+                "api/video/upload",
+                headers=headers,
+                data=form
+            ).raise_for_status()
 
 
 class NovelClient(BaseMediaClient):

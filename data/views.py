@@ -312,14 +312,6 @@ class UploadS3VideoView(APIView):
         videos_uploaded = []
         for fn, fp in request.FILES.items():
             object_name = f"video/{video_list.id}/{fp.name or 'data'}"
-            """
-            fp.size
-            Out[4]: 150665736
-            fp.content_type
-            Out[5]: 'video/mp4'
-            fn
-            Out[6]: 'file'
-            """
             mc.put_object(
                 DEFAULT_S3_BUCKET,
                 object_name,
