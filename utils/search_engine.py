@@ -127,8 +127,9 @@ class SearchableModelViewSet(ModelViewSet):
         return response
 
     def update(self, request, *args, **kwargs):
+        resp = super().update(request, *args, **kwargs)
         self.search_engine_update(self.get_object())
-        return super().update(request, *args, **kwargs)
+        return resp
 
     def partial_update(self, request, *args, **kwargs):
         self.search_engine_update(self.get_object())
