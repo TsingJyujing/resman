@@ -88,3 +88,24 @@ export function deleteContent(url) {
         })
     }
 }
+
+/**
+ *
+ * @param a1
+ * @param a2
+ */
+export function arrayEquals(a1, a2) {
+    try {
+        if (a1.length != a2.length) {
+            return false;
+        }
+        for (let i = 0, l = a1.length; i < l; i++) {
+            if (a1[i] != a2[i]) {
+                return false;
+            }
+        }
+        return true;
+    } catch (e) {
+        return false;
+    }
+}

@@ -17,13 +17,13 @@ import DeleteIcon from "@material-ui/icons/Delete";
 function Gallery({image_ids}) {
     return (
         <Container>
-            <Grid container spacing={3}>
+            <Grid container spacing={1}>
                 {
                     image_ids.map(image_id => {
                         const [height, setHeight] = React.useState(300);
                         const onContentVisible = () => setHeight("auto");
                         return (
-                            <Grid item spacing={3} lg={4} md={6} sm={12} xs={12}>
+                            <Grid item spacing={1} lg={4} md={6} sm={12} xs={12}>
                                 <LazyLoad height={height}
                                           offsetVertical={300}
                                           onContentVisible={onContentVisible}
@@ -70,7 +70,7 @@ function GalleryWithPaginator({image_ids}) {
 
     return (
         <Container>
-            <Grid container spacing={3}>
+            <Grid container spacing={1}>
                 {
                     slicedImages.map(image_id => {
                         const [height, setHeight] = React.useState(300);
@@ -89,6 +89,7 @@ function GalleryWithPaginator({image_ids}) {
                     })
                 }
             </Grid>
+
             <Grid container spacing={3}>
                 <Grid item spacing={3} xs={4}>
                     <Button variant="contained" color={pageId <= 1 ? "default" : "primary"} fullWidth
@@ -164,6 +165,8 @@ export default function ImageList() {
             </Typography>
 
             <Gallery image_ids={data.images}/>
+
+            <br/>
 
             <Grid container>
                 <Grid item xs={12}>

@@ -116,7 +116,7 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
 
 }
 
-export default function Search() {
+export default function Search({name, searchRange}) {
     const classes = useStyles();
 
     const [pageId, setPageId] = React.useState(1);
@@ -138,12 +138,6 @@ export default function Search() {
     const [similarWords, setSimilarWords] = React.useState('10');
     const handleSimilarWordsChange = (event) => {
         setSimilarWords(event.target.value);
-        modifyPageId(1);
-    };
-
-    const [searchRange, setSearchRange] = React.useState("imagelist");
-    const handleSearchRangeChange = (event) => {
-        setSearchRange(event.target.value);
         modifyPageId(1);
     };
 
@@ -177,6 +171,9 @@ export default function Search() {
     return (
         <Container maxWidth="lg">
             <br/>
+            <Typography>
+                {`Search for ${name}`}
+            </Typography>
             <Grid container spacing={3}>
                 <Grid item xs={10}>
                     <TextField
@@ -187,22 +184,6 @@ export default function Search() {
                         id="search-keywords"
                         label="Search"
                         fullWidth
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <Select
-                                        id="search-range"
-                                        value={searchRange}
-                                        onChange={handleSearchRangeChange}
-                                        className={classes.rangeSelect}
-                                    >
-                                        <MenuItem value={"imagelist"}><ImageIcon/></MenuItem>
-                                        <MenuItem value={"videolist"}><VideoLibraryIcon/></MenuItem>
-                                        <MenuItem value={"novel"}><MenuBookIcon/></MenuItem>
-                                    </Select>
-                                </InputAdornment>
-                            )
-                        }}
                         value={searchKeywords}
                         onChange={handleSearchKeywords}
                         onKeyPress={handleTextKeyPress}

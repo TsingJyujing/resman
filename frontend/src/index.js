@@ -7,11 +7,12 @@ import ImageList from "./ImageList";
 import BasicBarContainer from "./AppBasic";
 import theme from './theme';
 import {BrowserRouter as Router, Route, Switch, useLocation} from "react-router-dom";
-import {Container} from "@material-ui/core";
+import {Container, Grid} from "@material-ui/core";
 import ResultItem from "./ResultItem";
 import {QueryClient, QueryClientProvider} from "react-query";
 import Novel from "./Novel";
 import VideoList from "./VideoList";
+import {searchEntries} from "./Config";
 
 const queryClient = new QueryClient();
 
@@ -28,20 +29,14 @@ function NoMatch() {
 }
 
 function Home() {
-    const entries = [
-        {
-            title: "Images",
-            date: "",
-            description: "Image threads scraped from internet",
-            url: "/image"
-        }
-    ];
     return (
         <Container>
             <br/><br/>
-            {entries.map(entry => (
-                <ResultItem post={entry}/>
-            ))}
+            <Grid container spacing={3}>
+                {searchEntries.map(entry => (
+                    <ResultItem post={entry}/>
+                ))}
+            </Grid>
         </Container>
     )
 }
@@ -54,7 +49,10 @@ ReactDOM.render(
             <QueryClientProvider client={queryClient}>
                 <BasicBarContainer>
                     <Switch>
-                        <Route exact path={"/"}><Search/></Route>
+                        <Route exact path={"/"}><Home/></Route>
+                        <Route exact path={"/imagelist"}><Search name={"Images"} searchRange={"imagelist"}/></Route>
+                        <Route exact path={"/videolist"}><Search name={"Videos"} searchRange={"videolist"}/></Route>
+                        <Route exact path={"/novel"}><Search name={"Novels"} searchRange={"novel"}/></Route>
                         <Route path="/imagelist/:id"><ImageList/></Route>
                         <Route path="/videolist/:id"><VideoList/></Route>
                         <Route path="/novel/:id"><Novel/></Route>

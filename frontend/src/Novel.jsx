@@ -62,7 +62,7 @@ function NovelPage({novelId}) {
     return (
         <Grid container spacing={3}>
             <Grid item spacing={3} xs={12}>
-                <Typography gutterBottom variant={"body2"}>{
+                <Typography gutterBottom variant={"body1"}>{
                     data["text"].split("\n").flatMap(text => {
                         return [text, <br/>]
                     })
@@ -137,6 +137,7 @@ export default function Novel() {
                 {data.title || "No title"}
             </Typography>
             <NovelPage novelId={id}/>
+            <br/>
             <Grid container>
                 <Grid item xs={12}>
                     <BottomNavigation showLabels>

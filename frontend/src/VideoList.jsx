@@ -4,7 +4,6 @@ import {
     BottomNavigation,
     BottomNavigationAction,
     Button,
-    CircularProgress,
     Container,
     Dialog,
     DialogActions,
@@ -12,10 +11,10 @@ import {
     DialogContentText,
     DialogTitle,
     Grid,
+    Snackbar,
     TextField,
     Typography
 } from "@material-ui/core";
-
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
 
@@ -24,13 +23,17 @@ import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 
-import {createReactionOperations, deleteContent, getCookie} from "./Utility";
+import {arrayEquals, createReactionOperations, deleteContent, getCookie} from "./Utility";
 
-function VideoGallery({video_ids}) {
+function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
+function VideoGallery({videoIdList}) {
     return (
         <Grid container spacing={3}>
             {
-                video_ids.map(video_id => {
+                videoIdList.map(video_id => {
                     return (<Grid item lg={12} md={12} sm={12} xs={12}>
                         <video controls width={"100%"}>
                             <source src={`/api/video/${video_id}`} type={"video/mp4"}/>
@@ -51,6 +54,16 @@ export default function VideoList() {
     const handleModifyTitleChange = (event) => {
         setModifyTitle(event.target.value);
     }
+    const [videoList, setVideoList] = React.useState([]);
+
+    const [alertOpen, setAlertOpen] = React.useState(false)
+    const handleAlertClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setAlertOpen(false);
+    };
+
 
     const [modifyDescription, setModifyDescription] = React.useState(null);
     const handleModifyDescriptionChange = (event) => {
@@ -67,9 +80,7 @@ export default function VideoList() {
             cacheTime: 1000 * 60 * 20
         }
     );
-    if (isLoading) {
-        return <CircularProgress/>;
-    }
+
     if (error) {
         return (
             <Typography>
@@ -80,20 +91,36 @@ export default function VideoList() {
         );
     }
 
+    const stableData = isLoading ? {
+        "id": id,
+        "mock": true,
+        "title": "",
+        "description": "",
+        "owner": 0,
+        "positive_reaction": false,
+        "like_count": 0,
+        "dislike_count": 0,
+        "videos": []
+    } : data;
 
     const reactionOperations = createReactionOperations(
-        data["positive_reaction"],
+        stableData["positive_reaction"],
         `/api/videolist/${id}/reaction`,
         () => setCacheBurst(cacheBurst + 1)
     )
 
-    if (modifyTitle === null) {
-        setModifyTitle(data.title);
+    if (!isLoading) {
+        if (modifyTitle === null) {
+            setModifyTitle(data.title);
+        }
+        if (modifyDescription === null) {
+            setModifyDescription(data.description);
+        }
+        if (!arrayEquals(videoList, data.videos)) {
+            setVideoList(data.videos);
+        }
     }
 
-    if (modifyDescription === null) {
-        setModifyDescription(data.description);
-    }
     const modifyData = () => {
         fetch(
             `/api/videolist/${id}`,
@@ -113,10 +140,10 @@ export default function VideoList() {
                 redirect: 'follow', // manual, *follow, error
             }
         ).then(response => {
-            if (response.ok){
-                console.log("Modified successfully.")
-            }else{
-                // TODO alert user
+            if (response.ok) {
+                setAlertOpen(true);
+            } else {
+                alert("Failed while modifying the information.")
             }
             setCacheBurst(cacheBurst + 1);
 
@@ -124,18 +151,19 @@ export default function VideoList() {
         setOpen(false)
     }
 
-
     return (
         <Container maxWidth={"lg"}>
             <br/>
             <Typography variant={"h4"} gutterBottom>
-                {data.title || "No title"}
+                {stableData.title || "No title"}
             </Typography>
             <Typography variant={"h6"} gutterBottom>
-                {data.description || "No description"}
+                {stableData.description || "No description"}
             </Typography>
 
-            <VideoGallery video_ids={(data.videos || [])}/>
+            <VideoGallery videoIdList={videoList}/>
+
+            <br/><br/>
 
             <Grid container>
                 <Grid item xs={12}>
@@ -146,16 +174,16 @@ export default function VideoList() {
                             onClick={() => setOpen(true)}
                         />
                         <BottomNavigationAction
-                            label={data.like_count}
+                            label={stableData.like_count}
                             icon={<ThumbUpAltIcon color={
-                                data["positive_reaction"] === true ? "primary" : "disabled"
+                                stableData["positive_reaction"] === true ? "primary" : "disabled"
                             }/>}
                             onClick={reactionOperations.clickLike}
                         />
                         <BottomNavigationAction
-                            label={data.dislike_count}
+                            label={stableData.dislike_count}
                             icon={<ThumbDownAltIcon color={
-                                data["positive_reaction"] === false ? "primary" : "disabled"
+                                stableData["positive_reaction"] === false ? "primary" : "disabled"
                             }/>}
                             onClick={reactionOperations.clickDislike}
                         />
@@ -201,6 +229,13 @@ export default function VideoList() {
                         </Button>
                     </DialogActions>
                 </Dialog>
+                <Snackbar
+                    open={alertOpen}
+                    autoHideDuration={2000}
+                    message={"Information modified successfully."}
+                    onClose={handleAlertClose}
+                >
+                </Snackbar>
             </Grid>
         </Container>
     );

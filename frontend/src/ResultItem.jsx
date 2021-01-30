@@ -37,7 +37,7 @@ export default function ResultItem(props) {
     const {post} = props;
 
     return (
-        <Grid item xs={12} md={6} lg={6}>
+        <Grid item xs={12} md={6} lg={6} spacing={3}>
             <CardActionArea component="a" href={post.url} target='_blank'>
                 <Card className={classes.card}>
                     <div className={classes.cardDetails}>

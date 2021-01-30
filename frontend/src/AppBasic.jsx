@@ -8,24 +8,22 @@ import {
     Drawer,
     IconButton,
     List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
     Menu,
     MenuItem,
     Toolbar,
     Typography,
+    ListItem,
+    ListItemText,
+    ListItemIcon,
 } from "@material-ui/core";
 import MenuIcon from '@material-ui/icons/Menu';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import MailIcon from '@material-ui/icons/Mail';
-import MoreIcon from '@material-ui/icons/MoreVert';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import theme from "./theme"
-
+import {searchEntries} from "./Config";
 import {createGetRequestUrl} from "./Utility";
+import SearchIcon from "@material-ui/icons/Search";
 
 const drawerWidth = 240;
 
@@ -203,7 +201,7 @@ export default function BasicContainer(props) {
                         className={clsx(classes.menuButton, drawerOpen && classes.hide)}
                         color="inherit"
                         aria-label="open drawer"
-                        // onClick={handleDrawerChangeStatus} TODO recovery after finished drawer items
+                        onClick={handleDrawerChangeStatus}
                     >
                         <MenuIcon/>
                     </IconButton>
@@ -235,7 +233,6 @@ export default function BasicContainer(props) {
                     paper: classes.drawerPaper,
                 }}
             >
-                {/* TODO Personalize menu here */}
                 <div className={classes.drawerHeader}>
                     <IconButton onClick={handleDrawerClose}>
                         {theme.direction === 'ltr' ? <ChevronLeftIcon/> : <ChevronRightIcon/>}
@@ -243,22 +240,14 @@ export default function BasicContainer(props) {
                 </div>
                 <Divider/>
                 <List>
-                    {/*{['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (*/}
-                    {/*    <ListItem button key={text}>*/}
-                    {/*        <ListItemIcon>{index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}</ListItemIcon>*/}
-                    {/*        <ListItemText primary={text}/>*/}
-                    {/*    </ListItem>*/}
-                    {/*))}*/}
+                    {searchEntries.map((entry) => {
+                        return (<ListItem button component="a" key={entry.title} href={entry.url} target={"_blank"}>
+                            <ListItemIcon><SearchIcon/></ListItemIcon>
+                            <ListItemText primary={entry.title}/>
+                        </ListItem>);
+                    })}
                 </List>
                 <Divider/>
-                <List>
-                    {/*{['All mail', 'Trash', 'Spam'].map((text, index) => (*/}
-                    {/*    <ListItem button key={text}>*/}
-                    {/*        <ListItemIcon>{index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}</ListItemIcon>*/}
-                    {/*        <ListItemText primary={text}/>*/}
-                    {/*    </ListItem>*/}
-                    {/*))}*/}
-                </List>
             </Drawer>
             <div className={classes.drawerHeader}/>
             {props.children}
