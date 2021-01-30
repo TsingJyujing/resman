@@ -10,6 +10,7 @@ from data.views import (
     GetImageDataView,
     GetVideoStream,
     GetNovelPage,
+    GetImageDataViewWithCache,
 )
 
 router = DefaultRouter(trailing_slash=False)
@@ -23,7 +24,7 @@ urlpatterns = [
     path("videolist/<int:thread_id>/reaction", VideoListUserReactionView.as_view()),
     path("novel/<int:thread_id>/reaction", NovelUserReactionView.as_view()),
 
-    path("image/<int:image_id>", GetImageDataView.as_view()),
+    path("image/<int:image_id>", GetImageDataViewWithCache.as_view()),
     path("video/<int:video_id>", GetVideoStream.as_view()),
     path("novel/<int:novel_id>/data", GetNovelPage.as_view()),
 

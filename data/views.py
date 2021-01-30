@@ -4,9 +4,10 @@ import os
 import re
 import time
 from abc import abstractmethod
+from functools import lru_cache
 from io import BytesIO
 from math import ceil
-from typing import Sequence
+from typing import Sequence, Tuple
 from uuid import uuid1
 
 import magic
@@ -352,6 +353,41 @@ class GetImageDataView(APIView):
             return StreamingHttpResponse(
                 streaming_content=_wrapper(),
                 content_type=file_object.headers.get("Content-Type", im.content_type)
+            )
+        except S3Image.DoesNotExist:
+            resp = HttpResponse(
+                content=GetImageDataView.IMAGE_404_DATA,
+                content_type=GetImageDataView.IMAGE_404_CONTENT_TYPE,
+            )
+            resp.status_code = status.HTTP_404_NOT_FOUND
+            return resp
+
+
+class GetImageDataViewWithCache(APIView):
+    with open(os.path.join(FRONTEND_STATICFILES_DIR, "img/404.png"), "rb") as fp:
+        IMAGE_404_DATA = fp.read()
+    IMAGE_404_CONTENT_TYPE = magic.from_buffer("image/png", mime=True)
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def load_image(bucket: str, object_name: str) -> Tuple[bytes, str]:
+        file_object = create_default_minio_client().get_object(
+            bucket,
+            object_name,
+        )
+        content_type = file_object.headers.get("Content-Type")
+        return file_object.data, content_type
+
+    def get(self, request: Request, image_id: int):
+        try:
+            im: S3Image = S3Image.objects.get(id=image_id)
+            data, content_type = self.load_image(
+                im.bucket,
+                im.object_name,
+            )
+            return HttpResponse(
+                content=data,
+                content_type=content_type or im.content_type
             )
         except S3Image.DoesNotExist:
             resp = HttpResponse(
