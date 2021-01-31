@@ -19,7 +19,7 @@ class JSONDataSerializer(ModelSerializer):
 
     def to_representation(self, instance):
         data = super(JSONDataSerializer, self).to_representation(instance)
-        if not isinstance(data["data"], str):
+        if isinstance(data["data"], str):
             data["data"] = json.loads(data["data"])
         return data
 
