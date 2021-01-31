@@ -8,11 +8,11 @@ import {
     Accordion,
     AccordionDetails,
     AccordionSummary,
-    Button,
     CircularProgress,
     Container,
     FormControl,
     Grid,
+    IconButton,
     InputAdornment,
     InputLabel,
     MenuItem,
@@ -33,19 +33,12 @@ import FirstPageIcon from '@material-ui/icons/FirstPage';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 
-import ImageIcon from '@material-ui/icons/Image';
-import VideoLibraryIcon from '@material-ui/icons/VideoLibrary';
-import MenuBookIcon from '@material-ui/icons/MenuBook';
-
 import Icon from "@material-ui/core/Icon";
 
 const useStyles = makeStyles((theme) => ({
     heading: {
         fontSize: theme.typography.pxToRem(15),
         fontWeight: theme.typography.fontWeightRegular,
-    },
-    searchButton: {
-        height: "57px"
     },
     rangeSelect: {
         height: "39px"
@@ -171,32 +164,36 @@ export default function Search({name, searchRange}) {
     return (
         <Container maxWidth="lg">
             <br/>
-            <Typography>
-                {`Search for ${name}`}
-            </Typography>
-            <Grid container spacing={3}>
-                <Grid item xs={10}>
+            <Grid container spacing={1}>
+                <Grid item xs={12}>
                     <TextField
                         variant="filled"
                         className={{
                             margin: theme.spacing(1),
                         }}
                         id="search-keywords"
-                        label="Search"
+                        label={`Search for ${name}`}
                         fullWidth
                         value={searchKeywords}
                         onChange={handleSearchKeywords}
                         onKeyPress={handleTextKeyPress}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="search the item"
+                                        onClick={handleClickSearch}
+                                        edge="end"
+                                    >
+                                        <SearchIcon onClick={handleClickSearch}/>
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}
                     >
                     </TextField>
                 </Grid>
-                <Grid item xs={2}>
-                    <Button variant="contained" color="primary" fullWidth className={classes.searchButton}
-                            onClick={handleClickSearch}>
-                        <SearchIcon/>
-                    </Button>
-                </Grid>
-                <Grid item xs={12} sm={12}>
+                <Grid item xs={12}>
                     <Accordion>
                         <AccordionSummary
                             expandIcon={<ExpandMoreIcon/>}
@@ -206,54 +203,56 @@ export default function Search({name, searchRange}) {
                             <Typography className={classes.heading}>Advanced Search</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                            <Grid item xs={12} md={6} sm={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="search-accuracy-select-label">Search Accuracy</InputLabel>
-                                    <Select
-                                        labelId="search-accuracy-select-label"
-                                        id="search-accuracy"
-                                        value={searchAccuracy}
-                                        onChange={handleSearchAccuracyChange}
-                                    >
-                                        <MenuItem value={"or"}>Or</MenuItem>
-                                        <MenuItem value={"andmaybe"}>And Maybe</MenuItem>
-                                        <MenuItem value={"and"}>And</MenuItem>
-                                        <MenuItem value={"contains"}>Contains</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} md={6} sm={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="page-size-select-label">Results Per Page</InputLabel>
-                                    <Select
-                                        labelId="page-size-select-label"
-                                        id="page-size"
-                                        value={pageSize}
-                                        onChange={handleChangePageSize}
-                                    >
-                                        <MenuItem value={20}>20</MenuItem>
-                                        <MenuItem value={50}>50</MenuItem>
-                                        <MenuItem value={100}>100</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} md={6} sm={6}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="similar-words-select-label">Similar Words</InputLabel>
-                                    <Select
-                                        labelId="similar-words-select-label"
-                                        id="similar-words"
-                                        value={similarWords}
-                                        onChange={handleSimilarWordsChange}
-                                    >
-                                        <MenuItem value={0}>0</MenuItem>
-                                        <MenuItem value={1}>1</MenuItem>
-                                        <MenuItem value={2}>2</MenuItem>
-                                        <MenuItem value={5}>5</MenuItem>
-                                        <MenuItem value={10}>10</MenuItem>
-                                        <MenuItem value={20}>20</MenuItem>
-                                    </Select>
-                                </FormControl>
+                            <Grid container spacing={1}>
+                                <Grid item xs={12} md={6} lg={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="search-accuracy-select-label">Search Accuracy</InputLabel>
+                                        <Select
+                                            labelId="search-accuracy-select-label"
+                                            id="search-accuracy"
+                                            value={searchAccuracy}
+                                            onChange={handleSearchAccuracyChange}
+                                        >
+                                            <MenuItem value={"or"}>Or</MenuItem>
+                                            <MenuItem value={"andmaybe"}>And Maybe</MenuItem>
+                                            <MenuItem value={"and"}>And</MenuItem>
+                                            <MenuItem value={"contains"}>Contains</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} md={6} lg={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="page-size-select-label">Results Per Page</InputLabel>
+                                        <Select
+                                            labelId="page-size-select-label"
+                                            id="page-size"
+                                            value={pageSize}
+                                            onChange={handleChangePageSize}
+                                        >
+                                            <MenuItem value={20}>20</MenuItem>
+                                            <MenuItem value={50}>50</MenuItem>
+                                            <MenuItem value={100}>100</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} md={6} lg={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="similar-words-select-label">Similar Words</InputLabel>
+                                        <Select
+                                            labelId="similar-words-select-label"
+                                            id="similar-words"
+                                            value={similarWords}
+                                            onChange={handleSimilarWordsChange}
+                                        >
+                                            <MenuItem value={0}>0</MenuItem>
+                                            <MenuItem value={1}>1</MenuItem>
+                                            <MenuItem value={2}>2</MenuItem>
+                                            <MenuItem value={5}>5</MenuItem>
+                                            <MenuItem value={10}>10</MenuItem>
+                                            <MenuItem value={20}>20</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
                             </Grid>
                         </AccordionDetails>
                     </Accordion>
