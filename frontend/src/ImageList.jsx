@@ -14,7 +14,7 @@ import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
 import {createReactionOperations, deleteContent} from "./Utility";
 import DeleteIcon from "@material-ui/icons/Delete";
 
-function Gallery({image_ids}) {
+function GalleryWithoutPaginator({image_ids}) {
     return (
         <Container>
             <Grid container spacing={1}>
@@ -124,12 +124,14 @@ function GalleryWithPaginator({image_ids}) {
 
 }
 
+const Gallery = GalleryWithoutPaginator;
+
 export default function ImageList() {
     const {id} = useParams();
     const [cacheBurst, setCacheBurst] = React.useState(1);
 
     const {isLoading, error, data} = useQuery(
-        `/api/imagelist/${id}`,
+        `/api/imagelist/${id}-${cacheBurst}`,
         () => fetch(
             `/api/imagelist/${id}`
         ).then(
