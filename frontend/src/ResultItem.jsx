@@ -32,10 +32,8 @@ const useStyles = makeStyles({
  *      image:
  *      url:
  */
-export default function ResultItem(props) {
+export default function ResultItem({post}) {
     const classes = useStyles();
-    const {post} = props;
-
     return (
         <Grid item xs={12} md={6} lg={6} spacing={3}>
             <CardActionArea component="a" href={post.url} target='_blank'>
@@ -49,7 +47,7 @@ export default function ResultItem(props) {
                                 {post.date}
                             </Typography>
                             <Typography variant="subtitle1" paragraph>
-                                {post.description}
+                                {post.description.substring(0,100)}
                             </Typography>
                             <Typography variant="subtitle1" color="primary">
                                 Continue...
