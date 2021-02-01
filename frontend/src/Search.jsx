@@ -46,19 +46,20 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy, similarWords}) {
+function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy, similarWords, likedOnly}) {
 
-    const queryCondition = query === "" ? {
+    const queryCondition = {
         "p": page,
         "n": pageSize,
-        "sw": similarWords
-    } : {
-        "q": query,
-        "p": page,
-        "n": pageSize,
-        "a": searchAccuracy,
         "sw": similarWords
     };
+    if (query !== "") {
+        queryCondition["q"] = query;
+        queryCondition["a"] = searchAccuracy;
+    }
+    if (likedOnly) {
+        queryCondition["lo"] = "true"
+    }
     const {isLoading, error, data} = useQuery(
         `Query(${searchRange})(${JSON.stringify(queryCondition)})`,
         () => fetch(
@@ -121,10 +122,16 @@ export default function Search({name, searchRange}) {
         }
     };
 
+
     const [searchAccuracy, setSearchAccuracy] = React.useState('or');
     const handleSearchAccuracyChange = (event) => {
-        console.log(`SearchAccuracy ${searchAccuracy} => ${event.target.value}`);
         setSearchAccuracy(event.target.value);
+        modifyPageId(1);
+    };
+
+    const [likedOnly, setLikedOnly] = React.useState(false);
+    const handleChangeLikedOnly = (event)=>{
+        setLikedOnly(event.target.value);
         modifyPageId(1);
     };
 
@@ -136,7 +143,6 @@ export default function Search({name, searchRange}) {
 
     const [pageSize, setPageSize] = React.useState(20);
     const handleChangePageSize = (event) => {
-        console.log(`PageSize ${pageSize} => ${event.target.value}`);
         setPageSize(event.target.value);
         modifyPageId(1);
     }
@@ -253,6 +259,20 @@ export default function Search({name, searchRange}) {
                                         </Select>
                                     </FormControl>
                                 </Grid>
+                                 <Grid item xs={12} md={6} lg={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="liked-only-select-label">Search Liked Items</InputLabel>
+                                        <Select
+                                            labelId="liked-only-select-label"
+                                            id="liked-only"
+                                            value={likedOnly}
+                                            onChange={handleChangeLikedOnly}
+                                        >
+                                            <MenuItem value={false}>Search All Items</MenuItem>
+                                            <MenuItem value={true}>Search Liked Items Only</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
                             </Grid>
                         </AccordionDetails>
                     </Accordion>
@@ -266,6 +286,7 @@ export default function Search({name, searchRange}) {
                 pageSize={pageSize}
                 searchAccuracy={searchAccuracy}
                 similarWords={similarWords}
+                likedOnly={likedOnly}
             />
 
             <Grid container spacing={3}>

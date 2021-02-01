@@ -21,6 +21,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from whoosh.fields import Schema
+from whoosh.matching import ListMatcher
+from whoosh.query import Term
+from whoosh.query.compound import And, Or
 
 from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Video, ReactionToVideoList, Novel, \
     ReactionToNovel
@@ -76,16 +79,42 @@ class MediaViewSet(WhooshSearchableModelViewSet):
         n = int(request.query_params.get("n", "20"))
         p = int(request.query_params.get("p", "1"))
         similar_words = int(request.query_params.get("sw", "10"))
+        like_only = request.query_params.get("lo") is not None
         search_field = request.query_params.get("f", "full_text")
         connector = request.query_params.get("a", "andmaybe")
+
         if q is not None and connector != "contains":
             qr = parse_title_query(search_field, q, similar_words, connector)
+            liked_matcher = None
+            if like_only:
+                liked_matcher = Or([
+                        Term("id", str(reaction.thread.id))
+
+                        for reaction in self.get_reaction_class().objects.filter(
+                            positive_reaction=True
+                        ).filter(
+                            owner=request.user
+                        )
+                    ])
+
             with self.get_searcher() as s:
-                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search(qr, limit=p * n)][(p - 1) * n:]
+                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search(qr, filter=liked_matcher, limit=p * n)][(p - 1) * n:]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
             queryset = self.get_searchable_class().objects.filter(pk__in=indexes).order_by(preserved)
         else:
             queryset = self.filter_queryset(self.get_queryset())
+            if like_only:
+                queryset = queryset.filter(
+                    id__in=list(
+                        reaction.thread.id
+                        for reaction in self.get_reaction_class().objects.filter(
+                            positive_reaction=True
+                        ).filter(
+                            owner=request.user
+                        )
+                    )
+                )
+
             if q is not None:
                 for ws in re.split(r"\s+", q):
                     queryset = queryset.filter(title__contains=ws)
