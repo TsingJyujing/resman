@@ -1,6 +1,10 @@
 from .client import (
-    Novel, NovelClient,
-    VideoList, VideoListClient,
-    ImageList, ImageListClient,
-    DefaultS3Image
+    ResmanClient,
+    Novel,
+    NovelClient,
+    VideoList,
+    VideoListClient,
+    ImageList,
+    ImageListClient,
+    DefaultS3Image,
 )
