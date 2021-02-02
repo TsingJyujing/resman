@@ -194,3 +194,5 @@ WHOOSH_PATH = environ_get(
 )
 if not os.path.isdir(WHOOSH_PATH):
     os.makedirs(WHOOSH_PATH)
+
+IMAGE_CACHE_SIZE = int(os.environ.get("IMAGE_CACHE_SIZE", "32"))

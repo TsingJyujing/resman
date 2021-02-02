@@ -28,7 +28,7 @@ from whoosh.query.compound import And, Or
 from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Video, ReactionToVideoList, Novel, \
     ReactionToNovel
 from data.serializers import ImageListSerializer, VideoListSerializer, NovelSerializer
-from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR
+from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, IMAGE_CACHE_SIZE
 from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
 from utils.storage import create_default_minio_client, get_default_minio_client
 
@@ -398,7 +398,7 @@ class GetImageDataViewWithCache(APIView):
     IMAGE_404_CONTENT_TYPE = magic.from_buffer("image/png", mime=True)
 
     @staticmethod
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=IMAGE_CACHE_SIZE)
     def load_image(bucket: str, object_name: str) -> Tuple[bytes, str]:
         file_object = create_default_minio_client().get_object(
             bucket,
