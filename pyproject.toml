@@ -36,6 +36,9 @@ word2vec = "^0.11.1"
 pandas = "^1.2.0"
 pytest = "^6.2.1"
 requests-toolbelt = "^0.9.1"
+setuptools = "^53.0.0"
+wheel = "^0.36.2"
+twine = "^3.3.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
