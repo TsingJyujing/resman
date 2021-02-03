@@ -92,8 +92,8 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
                     data.map(postElement => (
                         <ResultItem key={postElement.id} post={{
                             title: postElement.title,
-                            date: postElement.updated,
-                            description: postElement.description,
+                            date: postElement.updated || "-",
+                            description: postElement.description || "-",
                             url: `/${searchRange}/${postElement.id}`
                         }}/>
                     ))
@@ -155,7 +155,6 @@ export default function Search({name, searchRange}) {
     };
 
     const handleClickSearch = () => {
-        console.log(`Query ${query} => ${searchKeywords}`);
         setQuery(searchKeywords);
         modifyPageId(1);
     }
