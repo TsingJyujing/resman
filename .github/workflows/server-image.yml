@@ -28,6 +28,6 @@ jobs:
             PIP_INDEX_URL=${{ secrets.PIP_INDEX_URL }}
           context: .
           file: Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: tsingjyujing/resman:latest
