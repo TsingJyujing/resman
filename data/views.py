@@ -352,7 +352,7 @@ class UploadS3VideoView(APIView):
                 thread=video_list,
                 bucket=request.data["bucket"],
                 object_name=request.data["object_name"]
-            ).id)
+            ))
         else:
             mc = get_default_minio_client()
             for fn, fp in request.FILES.items():
