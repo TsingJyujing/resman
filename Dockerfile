@@ -1,8 +1,7 @@
-ARG YARN_REGISTRY
 ARG PIP_INDEX_URL
 
 FROM node:15 as BUILD_FRONTEND
-
+ARG YARN_REGISTRY
 WORKDIR /app
 COPY frontend/yarn.lock frontend/package.json /app/
 RUN yarn
