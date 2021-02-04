@@ -172,6 +172,16 @@ class VideoListClient(BaseMediaClient):
                 data=form
             ).raise_for_status()
 
+    def append_s3_video(self, bucket: str, object_name: str):
+        self.post(
+            "api/video/upload",
+            json={
+                "video_list_id": str(self.object_id),
+                "bucket": bucket,
+                "object_name": object_name,
+            }
+        ).raise_for_status()
+
 
 class NovelClient(BaseMediaClient):
 

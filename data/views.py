@@ -343,23 +343,32 @@ class UploadS3ImageView(APIView):
 
 class UploadS3VideoView(APIView):
     def post(self, request: Request):
-        video_list = VideoList.objects.get(id=int(request.data["video_list_id"]))
-        mc = get_default_minio_client()
-        videos_uploaded = []
-        for fn, fp in request.FILES.items():
-            object_name = f"video/{video_list.id}/{fp.name or 'data'}"
-            mc.put_object(
-                DEFAULT_S3_BUCKET,
-                object_name,
-                fp, fp.size,
-                content_type=fp.content_type or "video/mp4"
-            )
-            videos_uploaded.append(S3Video.objects.create(
+        video_list = VideoList.objects.get(
+            id=int(request.data["video_list_id"])
+        )
+        s3_video_created = []
+        if "bucket" in request.data and "object_name" in request.data:
+            s3_video_created.append(S3Video.objects.create(
                 thread=video_list,
-                bucket=DEFAULT_S3_BUCKET,
-                object_name=object_name
-            ))
-        return Response({"video_id_list": [v.id for v in videos_uploaded]})
+                bucket=request.data["bucket"],
+                object_name=request.data["object_name"]
+            ).id)
+        else:
+            mc = get_default_minio_client()
+            for fn, fp in request.FILES.items():
+                object_name = f"video/{video_list.id}/{fp.name or 'data'}"
+                mc.put_object(
+                    DEFAULT_S3_BUCKET,
+                    object_name,
+                    fp, fp.size,
+                    content_type=fp.content_type or "video/mp4"
+                )
+                s3_video_created.append(S3Video.objects.create(
+                    thread=video_list,
+                    bucket=DEFAULT_S3_BUCKET,
+                    object_name=object_name
+                ))
+        return Response({"video_id_list": [v.id for v in s3_video_created]})
 
 
 class GetImageDataView(APIView):
