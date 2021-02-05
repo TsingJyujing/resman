@@ -123,7 +123,7 @@ export default function Search({name, searchRange}) {
     };
 
 
-    const [searchAccuracy, setSearchAccuracy] = React.useState('or');
+    const [searchAccuracy, setSearchAccuracy] = React.useState('contains_or');
     const handleSearchAccuracyChange = (event) => {
         setSearchAccuracy(event.target.value);
         modifyPageId(1);
@@ -221,7 +221,8 @@ export default function Search({name, searchRange}) {
                                             <MenuItem value={"or"}>Or</MenuItem>
                                             <MenuItem value={"andmaybe"}>And Maybe</MenuItem>
                                             <MenuItem value={"and"}>And</MenuItem>
-                                            <MenuItem value={"contains"}>Contains</MenuItem>
+                                            <MenuItem value={"contains_and"}>Contains And</MenuItem>
+                                            <MenuItem value={"contains_or"}>Contains Or</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>

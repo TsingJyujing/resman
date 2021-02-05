@@ -4,7 +4,7 @@ import os
 import re
 import time
 from abc import abstractmethod
-from functools import lru_cache
+from functools import lru_cache, reduce
 from io import BytesIO
 from math import ceil
 from typing import Sequence, Tuple
@@ -13,6 +13,7 @@ from uuid import uuid1
 import magic
 from django.core.paginator import Paginator
 from django.db.models import Case, When
+from django.db.models import Q
 from django.http import HttpResponse
 from django.http.response import StreamingHttpResponse
 from rest_framework import status
@@ -21,9 +22,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from whoosh.fields import Schema
-from whoosh.matching import ListMatcher
 from whoosh.query import Term
-from whoosh.query.compound import And, Or
+from whoosh.query.compound import Or
 
 from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Video, ReactionToVideoList, Novel, \
     ReactionToNovel
@@ -83,22 +83,22 @@ class MediaViewSet(WhooshSearchableModelViewSet):
         search_field = request.query_params.get("f", "full_text")
         connector = request.query_params.get("a", "andmaybe")
 
-        if q is not None and connector != "contains":
+        if q is not None and not connector.startswith("contains"):
             qr = parse_title_query(search_field, q, similar_words, connector)
             liked_matcher = None
             if like_only:
                 liked_matcher = Or([
-                        Term("id", str(reaction.thread.id))
-
-                        for reaction in self.get_reaction_class().objects.filter(
-                            positive_reaction=True
-                        ).filter(
-                            owner=request.user
-                        )
-                    ])
+                    Term("id", str(reaction.thread.id))
+                    for reaction in self.get_reaction_class().objects.filter(
+                        positive_reaction=True
+                    ).filter(
+                        owner=request.user
+                    )
+                ])
 
             with self.get_searcher() as s:
-                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search(qr, filter=liked_matcher, limit=p * n)][(p - 1) * n:]
+                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search(qr, filter=liked_matcher, limit=p * n)][
+                                         (p - 1) * n:]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
             queryset = self.get_searchable_class().objects.filter(pk__in=indexes).order_by(preserved)
         else:
@@ -114,10 +114,18 @@ class MediaViewSet(WhooshSearchableModelViewSet):
                         )
                     )
                 )
-
-            if q is not None:
-                for ws in re.split(r"\s+", q):
-                    queryset = queryset.filter(title__contains=ws)
+            qs = [Q(title__contains=ws) for ws in re.split(r"\s+", q or "") if ws != ""]
+            if len(qs) > 0:
+                if connector == "contains_or":
+                    queryset = queryset.filter(
+                        reduce(lambda q1, q2: q1 | q2, qs)
+                    )
+                elif connector == "contains_and":
+                    queryset = queryset.filter(
+                        reduce(lambda q1, q2: q1 & q2, qs)
+                    )
+                else:
+                    raise Exception(f"Unknown connector {connector}")
             queryset = Paginator(queryset, n).page(p)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
