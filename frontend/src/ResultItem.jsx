@@ -40,18 +40,18 @@ export default function ResultItem({post}) {
                 <Card className={classes.card}>
                     <div className={classes.cardDetails}>
                         <CardContent>
-                            <Typography component="h2" variant="h5">
+                            <Typography component="h5" variant="h6">
                                 {post.title}
                             </Typography>
-                            <Typography variant="subtitle1" color="textSecondary">
+                            <Typography variant="subtitle2" color="textSecondary">
                                 {post.date}
                             </Typography>
-                            <Typography variant="subtitle1" paragraph>
-                                {post.description.substring(0,100)}
+                            <Typography variant="subtitle2" paragraph>
+                                {post.description.substring(0,40)}
                             </Typography>
-                            <Typography variant="subtitle1" color="primary">
-                                Continue...
-                            </Typography>
+                            {/*<Typography variant="subtitle2" color="primary">*/}
+                            {/*    Continue...*/}
+                            {/*</Typography>*/}
                         </CardContent>
                     </div>
                     {"image" in post && <Hidden xsDown>
