@@ -29,6 +29,7 @@ from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Vi
     ReactionToNovel
 from data.serializers import ImageListSerializer, VideoListSerializer, NovelSerializer
 from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, IMAGE_CACHE_SIZE
+from utils.nlp.w2v_search import title_expand
 from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
 from utils.storage import create_default_minio_client, get_default_minio_client
 
@@ -73,6 +74,11 @@ class MediaViewSet(WhooshSearchableModelViewSet):
         return data
 
     def list(self, request: Request):
+        """
+        Core of search engine
+        :param request:
+        :return:
+        """
         q = request.query_params.get("q")
         if q == "":
             q = None
@@ -114,7 +120,15 @@ class MediaViewSet(WhooshSearchableModelViewSet):
                         )
                     )
                 )
-            qs = [Q(title__contains=ws) for ws in re.split(r"\s+", q or "") if ws != ""]
+            qs = []
+            for ws in re.split(r"\s+", q or ""):
+                if ws != "":
+                    cq = Q(title__contains=ws)
+                    if similar_words > 0:
+                        for similar_word, _ in title_expand(ws, similar_words):
+                            cq = cq | Q(title__contains=similar_word)
+                    qs.append(cq)
+
             if len(qs) > 0:
                 if connector == "contains_or":
                     queryset = queryset.filter(
