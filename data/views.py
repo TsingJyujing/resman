@@ -103,8 +103,10 @@ class MediaViewSet(WhooshSearchableModelViewSet):
                 ])
 
             with self.get_searcher() as s:
-                indexes: Sequence[int] = [int(hit["id"]) for hit in s.search(qr, filter=liked_matcher, limit=p * n)][
-                                         (p - 1) * n:]
+                indexes: Sequence[int] = [
+                                             int(hit["id"])
+                                             for hit in s.search(qr, filter=liked_matcher, limit=p * n)
+                                         ][(p - 1) * n:]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
             queryset = self.get_searchable_class().objects.filter(pk__in=indexes).order_by(preserved)
         else:

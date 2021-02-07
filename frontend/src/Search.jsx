@@ -130,12 +130,12 @@ export default function Search({name, searchRange}) {
     };
 
     const [likedOnly, setLikedOnly] = React.useState(false);
-    const handleChangeLikedOnly = (event)=>{
+    const handleChangeLikedOnly = (event) => {
         setLikedOnly(event.target.value);
         modifyPageId(1);
     };
 
-    const [similarWords, setSimilarWords] = React.useState('10');
+    const [similarWords, setSimilarWords] = React.useState('5');
     const handleSimilarWordsChange = (event) => {
         setSimilarWords(event.target.value);
         modifyPageId(1);
@@ -218,11 +218,11 @@ export default function Search({name, searchRange}) {
                                             value={searchAccuracy}
                                             onChange={handleSearchAccuracyChange}
                                         >
-                                            <MenuItem value={"or"}>Or</MenuItem>
-                                            <MenuItem value={"andmaybe"}>And Maybe</MenuItem>
-                                            <MenuItem value={"and"}>And</MenuItem>
-                                            <MenuItem value={"contains_and"}>Contains And</MenuItem>
-                                            <MenuItem value={"contains_or"}>Contains Or</MenuItem>
+                                            <MenuItem value={"or"}>Or(Full Text)</MenuItem>
+                                            <MenuItem value={"andmaybe"}>AndMaybe(Full Text)</MenuItem>
+                                            <MenuItem value={"and"}>And(Full Text)</MenuItem>
+                                            <MenuItem value={"contains_and"}>And(Title Contains)</MenuItem>
+                                            <MenuItem value={"contains_or"}>Or(Title Contains)</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -259,7 +259,7 @@ export default function Search({name, searchRange}) {
                                         </Select>
                                     </FormControl>
                                 </Grid>
-                                 <Grid item xs={12} md={6} lg={4}>
+                                <Grid item xs={12} md={6} lg={4}>
                                     <FormControl fullWidth>
                                         <InputLabel id="liked-only-select-label">Search Liked Items</InputLabel>
                                         <Select
@@ -295,7 +295,12 @@ export default function Search({name, searchRange}) {
                         <BottomNavigationAction label="First" icon={<FirstPageIcon/>} onClick={() => modifyPageId(1)}/>
                         <BottomNavigationAction label="Previous" icon={<NavigateBeforeIcon/>}
                                                 onClick={() => modifyPageId(pageId - 1)}/>
-                        <BottomNavigationAction label="Current" icon={<Icon>{pageId}</Icon>}/>
+                        <BottomNavigationAction label="Current" icon={<Icon>{pageId}</Icon>} onClick={() => {
+                            const pageIdInput = prompt("Please input page num:", `${pageId}`);
+                            if (pageIdInput != null) {
+                                modifyPageId(parseInt(pageIdInput));
+                            }
+                        }}/>
                         <BottomNavigationAction label="Next" icon={<NavigateNextIcon/>}
                                                 onClick={() => modifyPageId(pageId + 1)}/>
                     </BottomNavigation>
