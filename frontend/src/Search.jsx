@@ -165,6 +165,8 @@ export default function Search({name, searchRange}) {
         }
     }
 
+    document.title = `Search for ${name}`;
+
 
     return (
         <Container maxWidth="lg">
