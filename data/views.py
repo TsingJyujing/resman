@@ -126,9 +126,13 @@ class MediaViewSet(WhooshSearchableModelViewSet):
             for ws in re.split(r"\s+", q or ""):
                 if ws != "":
                     cq = Q(title__contains=ws)
+                    if self.get_searchable_class() != Novel:
+                        cq = cq | Q(description__contains=ws)
                     if similar_words > 0:
                         for similar_word, _ in title_expand(ws, similar_words):
                             cq = cq | Q(title__contains=similar_word)
+                            if self.get_searchable_class() != Novel:
+                                cq = cq | Q(description__contains=similar_word)
                     qs.append(cq)
 
             if len(qs) > 0:
@@ -466,7 +470,8 @@ class GetVideoStream(APIView):
     def get(self, request: Request, video_id: int):
         s3_video: S3Video = S3Video.objects.get(id=video_id)
         content_type, encoding = mimetypes.guess_type(s3_video.object_name)
-        content_type = content_type or 'application/octet-stream'
+        if content_type is None or not content_type.startswith("video"):
+            content_type = "video/mp4"
         minio_client = get_default_minio_client()
 
         range_match = self.range_re.match(
