@@ -161,7 +161,7 @@ class VideoListClient(BaseMediaClient):
     def upload_mp4_video(self, filename: str, order: int = 0):
         with open(filename, "rb") as fp:
             form = encoder.MultipartEncoder({
-                "file": ("data.csv", fp, "video/mp4"),
+                "file": ("data.mp4", fp, "video/mp4"),
                 "video_list_id": str(self.object_id),
                 "order": str(order)
             })

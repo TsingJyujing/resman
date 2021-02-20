@@ -79,6 +79,7 @@ class MediaViewSet(WhooshSearchableModelViewSet):
         :param request:
         :return:
         """
+        # TODO 需要整理一下这个超级大函数
         q = request.query_params.get("q")
         if q == "":
             q = None
@@ -384,18 +385,22 @@ class UploadS3VideoView(APIView):
         else:
             mc = get_default_minio_client()
             for fn, fp in request.FILES.items():
-                object_name = f"video/{video_list.id}/{fp.name or 'data'}"
+                video_file_id = uuid1()
+                object_name = f"video/{video_list.id}/{video_file_id}.mp4"
+
                 mc.put_object(
                     DEFAULT_S3_BUCKET,
                     object_name,
                     fp, fp.size,
                     content_type=fp.content_type or "video/mp4"
                 )
+
                 s3_video_created.append(S3Video.objects.create(
                     thread=video_list,
                     bucket=DEFAULT_S3_BUCKET,
                     object_name=object_name
                 ))
+
         return Response({"video_id_list": [v.id for v in s3_video_created]})
 
 
