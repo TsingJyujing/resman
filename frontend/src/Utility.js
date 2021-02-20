@@ -64,6 +64,18 @@ export function createReactionOperations(
     };
 }
 
+/**
+ * close current window with confirm or not
+ * @param withConfirm
+ */
+function closeWindow(withConfirm) {
+    if (!withConfirm || confirm("Close the window?")) {
+      window.opener=null;
+      window.open('','_self');
+      window.close();
+   }
+}
+
 export function deleteContent(url) {
     if (confirm("Are you sure to delete?")) {
         return fetch(
@@ -82,6 +94,7 @@ export function deleteContent(url) {
             console.log(response);
             if (response.ok) {
                 alert("Deleted successfully")
+                closeWindow(false)
             } else {
                 alert("Deleted failed.")
             }
