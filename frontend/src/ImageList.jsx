@@ -13,6 +13,7 @@ import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
 import {createReactionOperations, deleteContent} from "./Utility";
 import DeleteIcon from "@material-ui/icons/Delete";
+import DescriptionBlock from "./DescriptionBlock";
 
 function GalleryWithoutPaginator({image_ids}) {
     return (
@@ -162,9 +163,8 @@ export default function ImageList() {
             <Typography variant={"h4"} gutterBottom>
                 {data.title || "Loading..."}
             </Typography>
-            <Typography variant={"h6"} gutterBottom>
-                {data.description}
-            </Typography>
+
+            <DescriptionBlock text={data.description} variant={"h6"}/>
 
             <Gallery image_ids={data.images}/>
 
@@ -190,7 +190,7 @@ export default function ImageList() {
                         <BottomNavigationAction
                             label={"Delete"}
                             icon={<DeleteIcon color={"error"}/>}
-                            onClick={()=>deleteContent(`/api/imagelist/${id}`)}
+                            onClick={() => deleteContent(`/api/imagelist/${id}`)}
                         />
                     </BottomNavigation>
                 </Grid>

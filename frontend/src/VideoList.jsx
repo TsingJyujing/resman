@@ -24,6 +24,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 
 import {arrayEquals, createReactionOperations, deleteContent, getCookie} from "./Utility";
+import DescriptionBlock from "./DescriptionBlock";
 
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -157,9 +158,8 @@ export default function VideoList() {
             <Typography variant={"h4"} gutterBottom>
                 {stableData.title || "No title"}
             </Typography>
-            <Typography variant={"h6"} gutterBottom>
-                {stableData.description || "No description"}
-            </Typography>
+
+            <DescriptionBlock text={stableData.description || "No description"} variant={"h6"}/>
 
             <VideoGallery videoIdList={videoList}/>
 

@@ -49,9 +49,6 @@ export default function ResultItem({post}) {
                             <Typography variant="subtitle2" paragraph>
                                 {post.description.substring(0,40)}
                             </Typography>
-                            {/*<Typography variant="subtitle2" color="primary">*/}
-                            {/*    Continue...*/}
-                            {/*</Typography>*/}
                         </CardContent>
                     </div>
                     {"image" in post && <Hidden xsDown>

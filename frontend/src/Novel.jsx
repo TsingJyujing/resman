@@ -11,6 +11,7 @@ import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 import DeleteIcon from "@material-ui/icons/Delete";
+import DescriptionBlock from "./DescriptionBlock";
 
 function NovelPage({novelId}) {
     const pageSize = 4000;
@@ -62,11 +63,7 @@ function NovelPage({novelId}) {
     return (
         <Grid container spacing={3}>
             <Grid item spacing={3} xs={12}>
-                <Typography gutterBottom variant={"body1"}>{
-                    data["text"].split("\n").flatMap(text => {
-                        return [text, <br/>]
-                    })
-                }</Typography>
+                <DescriptionBlock text={data["text"]}/>
             </Grid>
 
             <Grid item spacing={3} xs={4}>
