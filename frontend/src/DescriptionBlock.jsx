@@ -4,7 +4,7 @@ import React from "react";
 export default function DescriptionBlock({text, variant = "body1"}) {
     return (
         <Typography gutterBottom variant={variant}>{
-            text.split(/(\n|\s)+/).flatMap(line => {
+            text.split(/\n(\n|\s)*/).flatMap(line => {
                 return [line, <br/>]
             })
         }</Typography>
