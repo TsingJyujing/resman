@@ -4,6 +4,7 @@ import {
     BottomNavigation,
     BottomNavigationAction,
     Button,
+    CircularProgress,
     Container,
     Dialog,
     DialogActions,
@@ -11,6 +12,8 @@ import {
     DialogContentText,
     DialogTitle,
     Grid,
+    MenuItem,
+    Select,
     Snackbar,
     TextField,
     Typography
@@ -25,25 +28,78 @@ import EditIcon from '@material-ui/icons/Edit';
 
 import {arrayEquals, createReactionOperations, deleteContent, getCookie} from "./Utility";
 import DescriptionBlock from "./DescriptionBlock";
+import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 function VideoGallery({videoIdList}) {
+    const [pageId, setPageId] = React.useState(1);
+    const pageCount = videoIdList.length;
+
+    const handleChangePageId = (event) => {
+        setPageId(event.target.value);
+    };
+
+    const handlePreviousPage = () => {
+        if (pageId > 1) {
+            setPageId(pageId - 1)
+        }
+    };
+    const handleNextPage = () => {
+        if (pageId < pageCount) {
+            setPageId(pageId + 1);
+        }
+    }
+
+    const videoId = videoIdList[pageId - 1];
+    if (videoId === undefined) {
+        return <CircularProgress/>;
+    }
+
+    console.log(`/api/video/${videoId}`);
+
     return (
-        <Grid container spacing={3}>
-            {
-                videoIdList.map(video_id => {
-                    return (<Grid item lg={12} md={12} sm={12} xs={12}>
-                        <video controls width={"100%"}>
-                            <source src={`/api/video/${video_id}`} type={"video/mp4"}/>
-                            {"Sorry, your browser doesn't support embedded videos."}
-                        </video>
-                    </Grid>);
-                })
-            }
-        </Grid>
+        <Container>
+            <Grid container spacing={3}>
+                <Grid item lg={12} md={12} sm={12} xs={12} key={`/api/video/${videoId}`}>
+                    <video controls width={"100%"}>
+                        <source src={`/api/video/${videoId}`} type={"video/mp4"}/>
+                        {"Sorry, your browser doesn't support embedded videos."}
+                    </video>
+                </Grid>
+            </Grid>
+            <Grid container spacing={3}>
+                <Grid item spacing={3} xs={4}>
+                    <Button variant="contained" color={pageId <= 1 ? "default" : "primary"} fullWidth
+                            onClick={handlePreviousPage}>
+                        <NavigateBeforeIcon/>
+                    </Button>
+                </Grid>
+                <Grid item spacing={3} xs={4}>
+                    <Select
+                        id="select-page-id"
+                        value={pageId}
+                        onChange={handleChangePageId}
+                        fullWidth
+                    >
+                        {
+                            [...Array(pageCount).keys()].map(
+                                i => (<MenuItem value={i + 1}>{i + 1}</MenuItem>)
+                            )
+                        }
+                    </Select>
+                </Grid>
+                <Grid item spacing={3} xs={4}>
+                    <Button variant="contained" color={pageId >= pageCount ? "default" : "primary"} fullWidth
+                            onClick={handleNextPage}>
+                        <NavigateNextIcon/>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Container>
     )
 }
 
