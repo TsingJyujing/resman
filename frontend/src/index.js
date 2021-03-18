@@ -7,12 +7,14 @@ import ImageList from "./ImageList";
 import BasicBarContainer from "./AppBasic";
 import theme from './theme';
 import {BrowserRouter as Router, Route, Switch, useLocation} from "react-router-dom";
-import {Container, Grid} from "@material-ui/core";
+import {Container, Grid, Typography} from "@material-ui/core";
 import ResultItem from "./ResultItem";
 import {QueryClient, QueryClientProvider} from "react-query";
 import Novel from "./Novel";
 import VideoList from "./VideoList";
-import {searchEntries} from "./Config";
+import {searchEntries, utilitiesEntries} from "./Config";
+import UploadVideo from "./UploadVideo";
+import UploadImage from "./UploadImage";
 
 const queryClient = new QueryClient();
 
@@ -30,10 +32,17 @@ function NoMatch() {
 
 function Home() {
     return (
-        <Container>
-            <br/><br/>
+        <Container><br/><br/>
+            <Typography component={"h4"} variant={"h4"}>Search</Typography>
             <Grid container spacing={3}>
                 {searchEntries.map(entry => (
+                    <ResultItem post={entry}/>
+                ))}
+            </Grid>
+            <br/><br/>
+            <Typography component={"h4"} variant={"h4"}>Utilities</Typography>
+            <Grid container spacing={3}>
+                {utilitiesEntries.map(entry => (
                     <ResultItem post={entry}/>
                 ))}
             </Grid>
@@ -50,6 +59,8 @@ ReactDOM.render(
                 <BasicBarContainer>
                     <Switch>
                         <Route exact path={"/"}><Home/></Route>
+                        <Route exact path={"/upload-video"}><UploadVideo/></Route>
+                        <Route exact path={"/upload-image"}><UploadImage/></Route>
                         <Route exact path={"/imagelist"}><Search name={"Images"} searchRange={"imagelist"}/></Route>
                         <Route exact path={"/videolist"}><Search name={"Videos"} searchRange={"videolist"}/></Route>
                         <Route exact path={"/novel"}><Search name={"Novels"} searchRange={"novel"}/></Route>

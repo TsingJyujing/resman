@@ -8,22 +8,22 @@ import {
     Drawer,
     IconButton,
     List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
     Menu,
     MenuItem,
     Toolbar,
     Typography,
-    ListItem,
-    ListItemText,
-    ListItemIcon,
 } from "@material-ui/core";
 import MenuIcon from '@material-ui/icons/Menu';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import theme from "./theme"
-import {searchEntries} from "./Config";
+import {searchEntries, utilitiesEntries} from "./Config";
 import {createGetRequestUrl} from "./Utility";
-import SearchIcon from "@material-ui/icons/Search";
+import GitHubIcon from '@material-ui/icons/GitHub';
 
 const drawerWidth = 240;
 
@@ -139,6 +139,18 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+function ItemCollection({entries, title}) {
+    return (<List>
+        <ListItem><ListItemText primary={title}/></ListItem>
+        {entries.map((entry) => {
+            return (<ListItem button component="a" key={entry.title} href={entry.url} target={"_blank"}>
+                <ListItemIcon>{entry.icon}</ListItemIcon>
+                <ListItemText primary={entry.title}/>
+            </ListItem>);
+        })}
+    </List>);
+}
+
 export default function BasicContainer(props) {
     const classes = useStyles();
 
@@ -238,14 +250,14 @@ export default function BasicContainer(props) {
                         {theme.direction === 'ltr' ? <ChevronLeftIcon/> : <ChevronRightIcon/>}
                     </IconButton>
                 </div>
+                <Divider/><ItemCollection entries={searchEntries} title={"Search"}/>
+                <Divider/><ItemCollection entries={utilitiesEntries} title={"Utilities"}/>
                 <Divider/>
                 <List>
-                    {searchEntries.map((entry) => {
-                        return (<ListItem button component="a" key={entry.title} href={entry.url} target={"_blank"}>
-                            <ListItemIcon><SearchIcon/></ListItemIcon>
-                            <ListItemText primary={entry.title}/>
-                        </ListItem>);
-                    })}
+                    <ListItem button component="a" key="source-code" href="https://github.com/TsingJyujing/resman" target={"_blank"}>
+                        <ListItemIcon><GitHubIcon/></ListItemIcon>
+                        <ListItemText primary="Source Code"/>
+                    </ListItem>
                 </List>
                 <Divider/>
             </Drawer>

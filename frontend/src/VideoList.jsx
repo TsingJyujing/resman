@@ -147,7 +147,6 @@ export default function VideoList() {
                 alert("Failed while modifying the information.")
             }
             setCacheBurst(cacheBurst + 1);
-
         })
         setOpen(false)
     }

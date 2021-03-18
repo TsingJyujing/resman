@@ -39,27 +39,67 @@ export function postData(url, data) {
             },
             redirect: 'follow', // manual, *follow, error
         }
-    ).then(response => response.json()) // parses response to JSON
+    )
 }
 
 
+export function postForm(url, formData) {
+    return fetch(
+        url,
+        {
+            method: 'POST',
+            body: formData,
+            cache: 'no-cache',
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Accept": "application/json"
+            },
+        }
+    )
+}
+
+
+/**
+ * Handle reaction operations, return event function on click like/dislike button
+ * @param currentReaction variable of current reaction status
+ * @param apiUrl should be /api/{item}/{id}/reaction
+ * @param onSuccess a function after reaction was set successfully, like burst the cache
+ * @param onError will be called while error
+ * @returns {{clickDislike: clickDislike, clickLike: clickLike}}
+ */
 export function createReactionOperations(
     currentReaction,
     apiUrl,
-    burstCache
+    onSuccess,
+    onError = (response) => {
+        console.error(response)
+    }
 ) {
     return {
         clickLike: () => {
             postData(
                 apiUrl,
                 {positive_reaction: (currentReaction === true ? null : true)}
-            ).then(burstCache);
+            ).then(response => {
+                if (response.ok) {
+                    onSuccess(response);
+                } else {
+                    onError(response);
+                }
+            });
         },
         clickDislike: () => {
             postData(
                 apiUrl,
                 {positive_reaction: (currentReaction === false ? null : false)}
-            ).then(burstCache);
+            ).then(response => {
+                if (response.ok) {
+                    onSuccess(response);
+                } else {
+                    onError(response);
+                }
+            });
         }
     };
 }
@@ -70,10 +110,10 @@ export function createReactionOperations(
  */
 function closeWindow(withConfirm) {
     if (!withConfirm || confirm("Close the window?")) {
-      window.opener=null;
-      window.open('','_self');
-      window.close();
-   }
+        window.opener = null;
+        window.open('', '_self');
+        window.close();
+    }
 }
 
 export function deleteContent(url) {
@@ -121,4 +161,16 @@ export function arrayEquals(a1, a2) {
     } catch (e) {
         return false;
     }
+}
+
+export function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }

@@ -41,13 +41,16 @@ export default function ResultItem({post}) {
                     <div className={classes.cardDetails}>
                         <CardContent>
                             <Typography component="h5" variant="h6">
-                                {post.title}
+                                {post.icon ? post.icon : null}
+                                {" " + post.title}
                             </Typography>
-                            <Typography variant="subtitle2" color="textSecondary">
-                                {post.date}
-                            </Typography>
+                            {
+                                post.date && (<Typography variant="subtitle2" color="textSecondary">
+                                    {post.date}
+                                </Typography>)
+                            }
                             <Typography variant="subtitle2" paragraph>
-                                {post.description.substring(0,40)}
+                                {post.description.substring(0, 40)}
                             </Typography>
                         </CardContent>
                     </div>

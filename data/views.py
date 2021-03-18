@@ -362,7 +362,7 @@ class UploadS3ImageView(APIView):
                     bucket=DEFAULT_S3_BUCKET,
                     object_name=object_name,
                     thread=image_thread,
-                    order=int(fn),
+                    order=int(fn) if fn.isdigit() else 0,
                     content_type=fp.content_type
                 )
                 image_id_list.append(im_obj.id)
