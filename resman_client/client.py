@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 
 import magic
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, validate_arguments
 from requests import Response
 from requests.auth import HTTPBasicAuth
 from requests_toolbelt.multipart import encoder
@@ -220,6 +220,7 @@ class ResmanClient(BaseClient):
             object_id=object_id
         )
 
+    @validate_arguments
     def create_image_list(self, info: ImageList):
         resp = self.post(
             "api/imagelist",
@@ -228,6 +229,7 @@ class ResmanClient(BaseClient):
         resp.raise_for_status()
         return self.get_image_list(int(resp.json()["id"]))
 
+    @validate_arguments
     def create_video_list(self, info: VideoList):
         resp = self.post(
             "api/videolist",
@@ -236,6 +238,7 @@ class ResmanClient(BaseClient):
         resp.raise_for_status()
         return self.get_video_list(int(resp.json()["id"]))
 
+    @validate_arguments
     def create_novel(self, info: Novel, text: str):
         resp = self.post(
             "api/novel",

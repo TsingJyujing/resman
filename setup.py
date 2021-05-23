@@ -7,7 +7,7 @@ with open("resman_client/README.md", "r") as fh:
 
 setup(
     name="resman-client",
-    version="1.2",
+    version="1.3",
     author="Tsing Jyujing",
     author_email="nigel434@gmail.com",
     description="Python client of Resman",
@@ -29,6 +29,12 @@ setup(
         "requests",
         "python-magic",
         "pydantic",
-        "requests-toolbelt"
+        "requests-toolbelt",
+        "click",
     ],
+    entry_points={
+        'console_scripts': [
+            'resman-cli=resman_client.cli:main',
+        ],
+    },
 )
