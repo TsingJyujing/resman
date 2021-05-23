@@ -65,20 +65,20 @@ function VideoGallery({videoIdList}) {
         <Container>
             <Grid container spacing={3}>
                 <Grid item lg={12} md={12} sm={12} xs={12} key={`/api/video/${videoId}`}>
-                    <video controls width={"100%"}>
+                    <video controls width={"100%"} height={"500px"}>
                         <source src={`/api/video/${videoId}`} type={"video/mp4"}/>
                         {"Sorry, your browser doesn't support embedded videos."}
                     </video>
                 </Grid>
             </Grid>
             <Grid container spacing={3}>
-                <Grid item spacing={3} xs={4}>
+                <Grid item spacing={3} xs={3}>
                     <Button variant="contained" color={pageId <= 1 ? "default" : "primary"} fullWidth
                             onClick={handlePreviousPage}>
                         <NavigateBeforeIcon/>
                     </Button>
                 </Grid>
-                <Grid item spacing={3} xs={4}>
+                <Grid item spacing={3} xs={6}>
                     <Select
                         id="select-page-id"
                         value={pageId}
@@ -92,7 +92,7 @@ function VideoGallery({videoIdList}) {
                         }
                     </Select>
                 </Grid>
-                <Grid item spacing={3} xs={4}>
+                <Grid item spacing={3} xs={3}>
                     <Button variant="contained" color={pageId >= pageCount ? "default" : "primary"} fullWidth
                             onClick={handleNextPage}>
                         <NavigateNextIcon/>
