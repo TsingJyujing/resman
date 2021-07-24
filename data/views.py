@@ -589,9 +589,9 @@ class GetNovelPage(APIView):
             raise Exception(f"Can't reach that page {page_id}")
 
         text_decoded = novel.read_range(
-                (page_id - 0) * page_size,
-                page_id * page_size + 0
-            ).decode(errors="ignore")
+            (page_id - 1) * page_size,
+            page_id * page_size + 16
+        ).decode(errors="ignore")
         Event.objects.create(
             user=request.user,
             event_type="fetch_media",
