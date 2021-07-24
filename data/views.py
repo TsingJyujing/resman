@@ -1,3 +1,4 @@
+import json
 import logging
 import mimetypes
 import os
@@ -26,7 +27,7 @@ from whoosh.query import Term
 from whoosh.query.compound import Or
 
 from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Video, ReactionToVideoList, Novel, \
-    ReactionToNovel
+    ReactionToNovel, Event
 from data.serializers import ImageListSerializer, VideoListSerializer, NovelSerializer
 from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, IMAGE_CACHE_SIZE
 from utils.nlp.w2v_search import title_expand
@@ -71,6 +72,14 @@ class MediaViewSet(WhooshSearchableModelViewSet):
             thread=instance,
             positive_reaction=False
         ).count()
+        Event.objects.create(
+            user=user,
+            event_type="page_view",
+            media_type=self.get_searchable_class().__name__,
+            data=json.dumps(dict(
+                id=data["id"],
+            ))
+        )
         return data
 
     def list(self, request: Request):
@@ -80,18 +89,18 @@ class MediaViewSet(WhooshSearchableModelViewSet):
         :return:
         """
         # TODO 需要整理一下这个超级大函数
-        q = request.query_params.get("q")
-        if q == "":
-            q = None
-        n = int(request.query_params.get("n", "20"))
-        p = int(request.query_params.get("p", "1"))
+        query = request.query_params.get("q")
+        if query == "":
+            query = None
+        page_size = int(request.query_params.get("n", "20"))
+        page_id = int(request.query_params.get("p", "1"))
         similar_words = int(request.query_params.get("sw", "10"))
         like_only = request.query_params.get("lo") is not None
         search_field = request.query_params.get("f", "full_text")
         connector = request.query_params.get("a", "andmaybe")
 
-        if q is not None and not connector.startswith("contains"):
-            qr = parse_title_query(search_field, q, similar_words, connector)
+        if query is not None and not connector.startswith("contains"):
+            qr = parse_title_query(search_field, query, similar_words, connector)
             liked_matcher = None
             if like_only:
                 liked_matcher = Or([
@@ -106,8 +115,8 @@ class MediaViewSet(WhooshSearchableModelViewSet):
             with self.get_searcher() as s:
                 indexes: Sequence[int] = [
                                              int(hit["id"])
-                                             for hit in s.search(qr, filter=liked_matcher, limit=p * n)
-                                         ][(p - 1) * n:]
+                                             for hit in s.search(qr, filter=liked_matcher, limit=page_id * page_size)
+                                         ][(page_id - 1) * page_size:]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
             queryset = self.get_searchable_class().objects.filter(pk__in=indexes).order_by(preserved)
         else:
@@ -124,7 +133,7 @@ class MediaViewSet(WhooshSearchableModelViewSet):
                     )
                 )
             qs = []
-            for ws in re.split(r"\s+", q or ""):
+            for ws in re.split(r"\s+", query or ""):
                 if ws != "":
                     cq = Q(title__contains=ws)
                     if self.get_searchable_class() != Novel:
@@ -147,9 +156,24 @@ class MediaViewSet(WhooshSearchableModelViewSet):
                     )
                 else:
                     raise Exception(f"Unknown connector {connector}")
-            queryset = Paginator(queryset, n).page(p)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+            queryset = Paginator(queryset, page_size).page(page_id)
+        serialized_data = self.get_serializer(queryset, many=True).data
+        Event.objects.create(
+            user=request.user,
+            event_type="impression",
+            media_type=self.get_searchable_class().__name__,
+            data=json.dumps(dict(
+                query=query,
+                page_size=page_size,
+                page_id=page_id,
+                similar_words=similar_words,
+                like_only=like_only,
+                search_field=search_field,
+                connector=connector,
+                result=[row["id"] for row in serialized_data],
+            ))
+        )
+        return Response(serialized_data)
 
     def get_queryset(self):
         return self.get_searchable_class().objects.order_by("-created")
@@ -254,24 +278,35 @@ class BaseUserReactionView(APIView):
 
     def post(self, request: Request, thread_id: int):
         positive_reaction = self.request.data["positive_reaction"]
-        rit = self.get_reaction_class().objects.filter(
+        reaction_of_thread = self.get_reaction_class().objects.filter(
             owner=self.request.user,
             thread=self.get_object_class().objects.get(id=thread_id)
         ).first()
 
-        if rit is not None:
+        original_status = None if reaction_of_thread is None else reaction_of_thread.positive_reactio
+
+        if reaction_of_thread is not None:
             if positive_reaction is not None:
-                rit.positive_reaction = positive_reaction
-                rit.save()
+                reaction_of_thread.positive_reaction = positive_reaction
+                reaction_of_thread.save()
             else:
-                rit.delete()
+                reaction_of_thread.delete()
         elif positive_reaction is not None:
             self.get_reaction_class().objects.create(
                 owner=self.request.user,
                 thread=self.get_object_class().objects.get(id=thread_id),
                 positive_reaction=positive_reaction
             )
-
+        Event.objects.create(
+            user=request.user,
+            event_type="reaction",
+            media_type=self.get_object_class().__name__,
+            data=json.dumps(dict(
+                id=thread_id,
+                original_status=original_status,
+                command=positive_reaction,
+            ))
+        )
         return Response({
             "positive_reaction": positive_reaction,
         })
@@ -456,6 +491,14 @@ class GetImageDataViewWithCache(APIView):
                 im.bucket,
                 im.object_name,
             )
+            Event.objects.create(
+                user=request.user,
+                event_type="fetch_media",
+                media_type="image",
+                data=json.dumps(dict(
+                    id=image_id,
+                ))
+            )
             return HttpResponse(
                 content=data,
                 content_type=content_type or im.content_type
@@ -501,6 +544,17 @@ class GetVideoStream(APIView):
             content_length = obj.getheader('Content-Length')
             content_range = obj.getheader('Content-Range')
 
+            Event.objects.create(
+                user=request.user,
+                event_type="fetch_media",
+                media_type="video",
+                data=json.dumps(dict(
+                    id=video_id,
+                    content_length=content_length,
+                    content_range=content_range,
+                ))
+            )
+
             def _wrapper():
                 yield from obj.stream()
                 obj.close()
@@ -533,10 +587,24 @@ class GetNovelPage(APIView):
         page_count = ceil(novel.get_size() / page_size)
         if page_id > page_count or page_id <= 0:
             raise Exception(f"Can't reach that page {page_id}")
+
+        text_decoded = novel.read_range(
+                (page_id - 0) * page_size,
+                page_id * page_size + 0
+            ).decode(errors="ignore")
+        Event.objects.create(
+            user=request.user,
+            event_type="fetch_media",
+            media_type="novel",
+            data=json.dumps(dict(
+                id=novel_id,
+                page_size=page_size,
+                page_id=page_id,
+                page_count=page_count,
+                character_count=len(text_decoded),
+            ))
+        )
         return Response({
-            "text": novel.read_range(
-                (page_id - 1) * page_size,
-                page_id * page_size + 1
-            ).decode(errors="ignore"),
+            "text": text_decoded,
             "page_count": page_count
         })

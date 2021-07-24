@@ -110,6 +110,13 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
 
 }
 
+/**
+ *
+ * @param name Display name of search rangek
+ * @param searchRange which range to search, videos/novels/...
+ * @returns {JSX.Element}
+ * @constructor
+ */
 export default function Search({name, searchRange}) {
     const classes = useStyles();
 

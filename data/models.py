@@ -258,6 +258,29 @@ class Novel(BaseS3Object, ISearchable):
     )
 
 
+class Event(models.Model):
+    """
+    For more details, see README.md
+    """
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    # Event Types: Impression/Click/Search/...
+    event_type = models.CharField(max_length=100)
+    # Media Type: Novel/Video/Image
+    media_type = models.CharField(max_length=100)
+    data = models.TextField(default="{}")
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['created']),
+            models.Index(fields=['user', 'event_type', 'media_type']),
+        ]
+
+
 def rebuild_searchable_index(cls):
     ix = WHOOSH_SEARCH_ENGINE.get_index(cls.get_index_name(), cls.get_schema())
     with ix.writer() as w:

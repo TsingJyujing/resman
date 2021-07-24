@@ -22,7 +22,7 @@ RUN rm -rf frontend
 FROM python:3.8 as BACKEND
 WORKDIR /app
 
-CMD ["python", "manage.py", "runserver", "--noreload", "0.0.0.0:8000"]
+CMD ["bash", "start_server.sh"]
 
 COPY --from=POETRY_EXPORT /app/requirements.txt /app/
 
