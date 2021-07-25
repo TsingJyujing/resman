@@ -608,3 +608,16 @@ class GetNovelPage(APIView):
             "text": text_decoded,
             "page_count": page_count
         })
+
+
+class ExpandSearchByW2V(APIView):
+    def get(self, request: Request):
+        keywords = re.split(r"\s+", request.query_params.get("q") or "")
+        similar_words = int(request.query_params.get("sw"))
+        return Response({
+            keyword: [
+                {"word": w, "score": s}
+                for w, s in title_expand(keyword, similar_words)
+            ]
+            for keyword in keywords
+        })

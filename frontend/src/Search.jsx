@@ -45,6 +45,46 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+function SearchExplanation({query, similarWords}) {
+    const queryCondition = {
+        "q": query,
+        "sw": similarWords
+    };
+    const {isLoading, error, data} = useQuery(
+        `Explain Search(${JSON.stringify(queryCondition)})`,
+        () => fetch(
+            createGetRequestUrl(
+                window.location,
+                `/api/nlp/query_expand`,
+                queryCondition
+            ).toString()
+        ).then(
+            resp => resp.json()
+        ),
+        {cacheTime: 1000 * 60 * 20}
+    );
+    if (isLoading) {
+        return <CircularProgress/>;
+    }
+    if (error) {
+        return (
+            <Typography>
+                {
+                    "An error has occurred: " + JSON.stringify(error)
+                }
+            </Typography>
+        );
+    }
+    return (
+        <Container maxWidth="lg">
+            {Object.entries(data).filter(kv => kv[0] !== "").map(kv => {
+                return (<Typography>
+                    {`${kv[0]} -> ${kv[1].map(o => `${o["word"]}(${o["score"].toFixed(3)})`).join("/")}`}
+                </Typography>)
+            })}
+        </Container>
+    );
+}
 
 function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy, similarWords, likedOnly}) {
 
@@ -133,25 +173,25 @@ export default function Search({name, searchRange}) {
     const [searchAccuracy, setSearchAccuracy] = React.useState('contains_or');
     const handleSearchAccuracyChange = (event) => {
         setSearchAccuracy(event.target.value);
-        modifyPageId(1);
+        handleClickSearch();
     };
 
     const [likedOnly, setLikedOnly] = React.useState(false);
     const handleChangeLikedOnly = (event) => {
         setLikedOnly(event.target.value);
-        modifyPageId(1);
+        handleClickSearch();
     };
 
     const [similarWords, setSimilarWords] = React.useState('5');
     const handleSimilarWordsChange = (event) => {
         setSimilarWords(event.target.value);
-        modifyPageId(1);
+        handleClickSearch();
     };
 
     const [pageSize, setPageSize] = React.useState(20);
     const handleChangePageSize = (event) => {
         setPageSize(event.target.value);
-        modifyPageId(1);
+        handleClickSearch();
     }
 
     const [searchKeywords, setSearchKeywords] = React.useState("");
@@ -173,7 +213,6 @@ export default function Search({name, searchRange}) {
     }
 
     document.title = `Search for ${name}`;
-
 
     return (
         <Container maxWidth="lg">
@@ -281,6 +320,13 @@ export default function Search({name, searchRange}) {
                                             <MenuItem value={true}>Search Liked Items Only</MenuItem>
                                         </Select>
                                     </FormControl>
+                                </Grid>
+                                <Grid item xs={12} md={12} lg={12}>
+                                    <Typography>Explanation</Typography>
+                                    <SearchExplanation
+                                        query={query}
+                                        similarWords={similarWords}
+                                    />
                                 </Grid>
                             </Grid>
                         </AccordionDetails>
