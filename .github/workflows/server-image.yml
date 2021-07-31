@@ -31,3 +31,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: tsingjyujing/resman:latest
+          cache-from: type=registry,ref=tsingjyujing/resman:buildcache
+          cache-to: type=registry,ref=tsingjyujing/resman:buildcache,mode=max
