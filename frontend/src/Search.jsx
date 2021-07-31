@@ -35,6 +35,8 @@ import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 
 import Icon from "@material-ui/core/Icon";
 
+import useQueryString from "./useQueryString";
+
 const useStyles = makeStyles((theme) => ({
     heading: {
         fontSize: theme.typography.pxToRem(15),
@@ -160,7 +162,7 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
 export default function Search({name, searchRange}) {
     const classes = useStyles();
 
-    const [pageId, setPageId] = React.useState(1);
+    const [pageId, setPageId] = useQueryString("p", 1);
     const modifyPageId = (newPageId) => {
         if (newPageId <= 1) {
             setPageId(1);
@@ -170,32 +172,32 @@ export default function Search({name, searchRange}) {
     };
 
 
-    const [searchAccuracy, setSearchAccuracy] = React.useState('contains_or');
+    const [searchAccuracy, setSearchAccuracy] = useQueryString("a", 'contains_or');
     const handleSearchAccuracyChange = (event) => {
         setSearchAccuracy(event.target.value);
         handleClickSearch();
     };
 
-    const [likedOnly, setLikedOnly] = React.useState(false);
+    const [likedOnly, setLikedOnly] = useQueryString("lo", false);
     const handleChangeLikedOnly = (event) => {
         setLikedOnly(event.target.value);
         handleClickSearch();
     };
 
-    const [similarWords, setSimilarWords] = React.useState('5');
+    const [similarWords, setSimilarWords] = useQueryString("sw", '5');
     const handleSimilarWordsChange = (event) => {
         setSimilarWords(event.target.value);
         handleClickSearch();
     };
 
-    const [pageSize, setPageSize] = React.useState(20);
+    const [pageSize, setPageSize] = useQueryString("n", 20);
     const handleChangePageSize = (event) => {
         setPageSize(event.target.value);
         handleClickSearch();
     }
 
     const [searchKeywords, setSearchKeywords] = React.useState("");
-    const [query, setQuery] = React.useState(searchKeywords);
+    const [query, setQuery] = useQueryString("q", searchKeywords);
 
     const handleSearchKeywords = (event) => {
         setSearchKeywords(event.target.value);

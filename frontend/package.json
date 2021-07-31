@@ -18,6 +18,7 @@
     "clsx": "latest",
     "jquery": "^3.5.1",
     "material-ui-dropzone": "^3.5.0",
+    "query-string": "^7.0.1",
     "react": "latest",
     "react-dom": "latest",
     "react-dropzone": "^11.3.1",
