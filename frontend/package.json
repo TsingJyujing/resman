@@ -24,7 +24,7 @@
     "react-dropzone": "^11.3.1",
     "react-grid-gallery": "^0.5.5",
     "react-lazy-load": "^3.1.13",
-    "react-native": "^0.63.4",
+    "react-native": "^0.64.1",
     "react-native-web": "^0.14.10",
     "react-query": "^3.5.11",
     "react-router": "^5.2.0",
