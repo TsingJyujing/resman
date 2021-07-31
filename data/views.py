@@ -452,6 +452,15 @@ class GetImageDataView(APIView):
                 im.object_name,
             )
 
+            Event.objects.create(
+                user=request.user,
+                event_type="fetch_media",
+                media_type="ImageList",
+                data=json.dumps(dict(
+                    id=image_id,
+                ))
+            )
+
             def _wrapper():
                 yield from file_object.stream()
                 file_object.close()
@@ -494,7 +503,7 @@ class GetImageDataViewWithCache(APIView):
             Event.objects.create(
                 user=request.user,
                 event_type="fetch_media",
-                media_type="image",
+                media_type="ImageList",
                 data=json.dumps(dict(
                     id=image_id,
                 ))
@@ -547,7 +556,7 @@ class GetVideoStream(APIView):
             Event.objects.create(
                 user=request.user,
                 event_type="fetch_media",
-                media_type="video",
+                media_type="VideoList",
                 data=json.dumps(dict(
                     id=video_id,
                     content_length=content_length,
@@ -595,7 +604,7 @@ class GetNovelPage(APIView):
         Event.objects.create(
             user=request.user,
             event_type="fetch_media",
-            media_type="novel",
+            media_type="Novel",
             data=json.dumps(dict(
                 id=novel_id,
                 page_size=page_size,
