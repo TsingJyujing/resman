@@ -15,6 +15,8 @@ import VideoList from "./VideoList";
 import {searchEntries, utilitiesEntries} from "./Config";
 import UploadVideo from "./UploadVideo";
 import UploadImage from "./UploadImage";
+import RecommendationResult from "./RecommendationResult";
+import ImageSearchIcon from "@material-ui/icons/ImageSearch";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,17 @@ function Home() {
                 {searchEntries.map(entry => (
                     <ResultItem post={entry}/>
                 ))}
+            </Grid>
+            <br/><br/>
+            <Typography component={"h4"} variant={"h4"}>Recommendation</Typography>
+            <Grid container spacing={3}>
+                <ResultItem post={{
+                    title: "Images Recommendation",
+                    date: "",
+                    description: "Personalize recommendation of imagelists",
+                    url: "/recsys/imagelist",
+                    icon: (<ImageSearchIcon/>),
+                }}/>
             </Grid>
             <br/><br/>
             <Typography component={"h4"} variant={"h4"}>Utilities</Typography>
@@ -64,6 +77,9 @@ ReactDOM.render(
                         <Route exact path={"/imagelist"}><Search name={"Images"} searchRange={"imagelist"}/></Route>
                         <Route exact path={"/videolist"}><Search name={"Videos"} searchRange={"videolist"}/></Route>
                         <Route exact path={"/novel"}><Search name={"Novels"} searchRange={"novel"}/></Route>
+                        <Route exact path={"/recsys/imagelist"}>
+                            <RecommendationResult name={"Images Recommendation"} searchRange={"imagelist"}/>
+                        </Route>
                         <Route path="/imagelist/:id"><ImageList/></Route>
                         <Route path="/videolist/:id"><VideoList/></Route>
                         <Route path="/novel/:id"><Novel/></Route>
