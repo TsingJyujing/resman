@@ -268,9 +268,9 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         null=True
     )
-    # Event Types: Impression/Click/Search/...
+    # Event Types: impression/page_view/fetch_media/...
     event_type = models.CharField(max_length=100)
-    # Media Type: Novel/Video/Image
+    # Media Type: Novel/VideoList/ImageList
     media_type = models.CharField(max_length=100)
     data = models.TextField(default="{}")
 

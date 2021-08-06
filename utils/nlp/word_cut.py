@@ -45,3 +45,11 @@ def text_clean_split(data: str) -> Iterable[List[str]]:
         if len(buffer) > 0:
             yield buffer
             buffer = []
+
+
+def tokenizer(text: str) -> List[str]:
+    buffer = []
+    for s in re.split(r"\s+", clean_up_chinese_str(text)):
+        for c in cut(s):
+            buffer.append(c)
+    return buffer

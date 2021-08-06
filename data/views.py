@@ -1,17 +1,20 @@
+import datetime
 import json
 import logging
 import mimetypes
 import os
+import pickle
 import re
 import time
 from abc import abstractmethod
 from functools import lru_cache, reduce
 from io import BytesIO
 from math import ceil
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, List
 from uuid import uuid1
 
 import magic
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Case, When
 from django.db.models import Q
@@ -29,8 +32,9 @@ from whoosh.query.compound import Or
 from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Video, ReactionToVideoList, Novel, \
     ReactionToNovel, Event
 from data.serializers import ImageListSerializer, VideoListSerializer, NovelSerializer
-from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, IMAGE_CACHE_SIZE
+from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, IMAGE_CACHE_SIZE, RECSYS_MODEL_PATH
 from utils.nlp.w2v_search import title_expand
+from utils.recsys.lr_recsys import train_model, get_aggregated_logs
 from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
 from utils.storage import create_default_minio_client, get_default_minio_client
 
@@ -158,6 +162,7 @@ class MediaViewSet(WhooshSearchableModelViewSet):
                     raise Exception(f"Unknown connector {connector}")
             queryset = Paginator(queryset, page_size).page(page_id)
         serialized_data = self.get_serializer(queryset, many=True).data
+        # Rank again by RecSys model
         Event.objects.create(
             user=request.user,
             event_type="impression",
@@ -630,3 +635,77 @@ class ExpandSearchByW2V(APIView):
             ]
             for keyword in keywords
         })
+
+
+class RecommendationRecord:
+    def __init__(self, recommendation, expire: int = 3600 * 2):
+        self.recommendation = recommendation
+        self.expire = (datetime.datetime.now() + datetime.timedelta(seconds=expire)).timestamp()
+
+    def is_expire(self):
+        return datetime.datetime.now().timestamp() > self.expire
+
+
+def get_model(user: User):
+    model_path = os.path.join(RECSYS_MODEL_PATH, f"user_{user.id}.pt")
+    try:
+        log.info("Loading model from disk")
+        with open(model_path, "rb") as fp:
+            model_info = pickle.load(fp)
+            if model_info["expire_timestamp"] > time.time():
+                return model_info["model"]
+    except Exception as ex:
+        log.info("Falied to load model caused by:", exc_info=ex)
+        model = train_model(user)
+        with open(model_path, "wb") as fp:
+            pickle.dump({
+                "expire_timestamp": time.time() + 24 * 3600,
+                "model": model
+            }, fp)
+        return model
+
+
+recommendation_cache = dict()
+
+
+def get_recommendations(user: User) -> List[int]:
+    if user.id not in recommendation_cache or recommendation_cache[user.id].is_expire():
+        log.info("Recommendation not found or expired, generating...")
+        model = get_model(user)
+        block_thread_ids = {
+            tid for tid, tinfo in get_aggregated_logs(user).items()
+            if tinfo.is_like is not None or tinfo.click_count > 1 or tinfo.impression_count > 3
+        }
+        candidates = list(ImageList.objects.all().values_list("title", "id"))
+        scored_id = sorted(list(zip(
+            [tid for _, tid in candidates],
+            model.decision_function([title for title, _ in candidates])
+        )), key=lambda x: -x[1])
+        recommendation_cache[user.id] = RecommendationRecord(
+            [tid for tid, _ in scored_id if tid not in block_thread_ids]
+        )
+    return recommendation_cache[user.id].recommendation
+
+
+class RecommendImageList(APIView):
+    def get(self, request: Request):
+        recommendation = get_recommendations(request.user)
+        page_size = int(request.query_params.get("n", "20"))
+        page_id = int(request.query_params.get("p", "1"))
+        page_recommendation = recommendation[(page_id - 1) * page_size:page_id * page_size]
+        preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(page_recommendation)])
+        queryset = ImageList.objects.filter(pk__in=page_recommendation).order_by(preserved)
+        serialized_data = ImageListSerializer(queryset, many=True).data
+        # Rank again by RecSys model
+        Event.objects.create(
+            user=request.user,
+            event_type="impression",
+            media_type="ImageList",
+            data=json.dumps(dict(
+                page_size=page_size,
+                page_id=page_id,
+                source="recommendation",
+                result=page_recommendation,
+            ))
+        )
+        return Response(serialized_data)

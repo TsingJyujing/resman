@@ -131,3 +131,4 @@ dmypy.json
 /whoosh_index/
 /nlp_resources/
 /test_data/
+/recsys_model/

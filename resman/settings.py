@@ -196,3 +196,10 @@ if not os.path.isdir(WHOOSH_PATH):
     os.makedirs(WHOOSH_PATH)
 
 IMAGE_CACHE_SIZE = int(os.environ.get("IMAGE_CACHE_SIZE", "32"))
+
+RECSYS_MODEL_PATH = environ_get(
+    "RECSYS_MODEL_PATH",
+    os.path.join(BASE_DIR, "recsys_model")
+)
+if not os.path.isdir(RECSYS_MODEL_PATH):
+    os.makedirs(RECSYS_MODEL_PATH)

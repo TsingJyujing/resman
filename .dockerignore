@@ -478,3 +478,4 @@ fabric.properties
 /frontend/node_modules
 /frontend/build
 /.git/
+/recsys_model/

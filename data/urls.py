@@ -9,7 +9,9 @@ from data.views import (
     UploadS3ImageView,
     GetVideoStream,
     GetNovelPage,
-    GetImageDataViewWithCache, ExpandSearchByW2V,
+    GetImageDataViewWithCache,
+    ExpandSearchByW2V,
+    RecommendImageList,
 )
 
 router = DefaultRouter(trailing_slash=False)
@@ -27,5 +29,6 @@ urlpatterns = [
     path("image/upload", UploadS3ImageView.as_view()),
     path("video/upload", UploadS3VideoView.as_view()),
     path("nlp/query_expand", ExpandSearchByW2V.as_view()),
+    path("recsys/imagelist", RecommendImageList.as_view()),
     path("", include(router.urls)),
 ]
