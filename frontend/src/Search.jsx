@@ -26,16 +26,8 @@ import ResultItem from "./ResultItem";
 import theme from "./theme";
 import {createGetRequestUrl} from "./Utility";
 
-import BottomNavigation from '@material-ui/core/BottomNavigation';
-import BottomNavigationAction from '@material-ui/core/BottomNavigationAction';
-
-import FirstPageIcon from '@material-ui/icons/FirstPage';
-import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
-
-import Icon from "@material-ui/core/Icon";
-
 import useQueryString from "./useQueryString";
+import {Paginator} from "./components/Paginator";
 
 const useStyles = makeStyles((theme) => ({
     heading: {
@@ -163,14 +155,6 @@ export default function Search({name, searchRange}) {
     const classes = useStyles();
 
     const [pageId, setPageId] = useQueryString("p", 1);
-    const modifyPageId = (newPageId) => {
-        if (newPageId <= 1) {
-            setPageId(1);
-        } else {
-            setPageId(newPageId);
-        }
-    };
-
 
     const [searchAccuracy, setSearchAccuracy] = useQueryString("a", 'contains_or');
     const handleSearchAccuracyChange = (event) => {
@@ -346,23 +330,7 @@ export default function Search({name, searchRange}) {
                 likedOnly={likedOnly}
             />
 
-            <Grid container spacing={3}>
-                <Grid item sm={12} md={12} lg={12} xs={12}>
-                    <BottomNavigation>
-                        <BottomNavigationAction label="First" icon={<FirstPageIcon/>} onClick={() => modifyPageId(1)}/>
-                        <BottomNavigationAction label="Previous" icon={<NavigateBeforeIcon/>}
-                                                onClick={() => modifyPageId(pageId - 1)}/>
-                        <BottomNavigationAction label="Current" icon={<Icon>{pageId}</Icon>} onClick={() => {
-                            const pageIdInput = prompt("Please input page num:", `${pageId}`);
-                            if (pageIdInput != null) {
-                                modifyPageId(parseInt(pageIdInput));
-                            }
-                        }}/>
-                        <BottomNavigationAction label="Next" icon={<NavigateNextIcon/>}
-                                                onClick={() => modifyPageId(pageId + 1)}/>
-                    </BottomNavigation>
-                </Grid>
-            </Grid>
+            <Paginator pageId={pageId} setPageId={setPageId}/>
 
         </Container>
     );

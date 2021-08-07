@@ -1,35 +1,20 @@
 import React from 'react';
-import {Button, CircularProgress, Container, Grid, MenuItem, Select} from "@material-ui/core";
+import {CircularProgress, Container, Grid} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
 import {createGetRequestUrl, createReactionOperations, deleteContent} from "./Utility";
-import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import BottomNavigation from "@material-ui/core/BottomNavigation";
 import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 import DeleteIcon from "@material-ui/icons/Delete";
 import DescriptionBlock from "./DescriptionBlock";
+import {PaginatorWithCombo} from "./components/Paginator";
 
 function NovelPage({novelId}) {
     const pageSize = 4000;
     const [pageId, setPageId] = React.useState(1);
-
-    const handleChangePageId = (event) => {
-        setPageId(event.target.value);
-    };
-    const handlePreviousPage = () => {
-        if (pageId > 1) {
-            setPageId(pageId - 1)
-        }
-    };
-    const handleNextPage = () => {
-        if (pageId < pageCount) {
-            setPageId(pageId + 1);
-        }
-    }
 
     const {isLoading, error, data} = useQuery(
         `novel-page-${novelId}-${pageId}-${pageSize}`,
@@ -61,38 +46,14 @@ function NovelPage({novelId}) {
     const pageCount = data["page_count"];
 
     return (
-        <Grid container spacing={3}>
-            <Grid item spacing={3} xs={12}>
-                <DescriptionBlock text={data["text"]}/>
+        <Container>
+            <Grid container spacing={3}>
+                <Grid item spacing={3} xs={12}>
+                    <DescriptionBlock text={data["text"]}/>
+                </Grid>
             </Grid>
-
-            <Grid item spacing={3} xs={4}>
-                <Button variant="contained" color={pageId <= 1 ? "default" : "primary"} fullWidth
-                        onClick={handlePreviousPage}>
-                    <NavigateBeforeIcon/>
-                </Button>
-            </Grid>
-            <Grid item spacing={3} xs={4}>
-                <Select
-                    id="select-page-id"
-                    value={pageId}
-                    onChange={handleChangePageId}
-                    fullWidth
-                >
-                    {
-                        [...Array(pageCount).keys()].map(
-                            i => (<MenuItem value={i + 1}>{i + 1}</MenuItem>)
-                        )
-                    }
-                </Select>
-            </Grid>
-            <Grid item spacing={3} xs={4}>
-                <Button variant="contained" color={pageId >= pageCount ? "default" : "primary"} fullWidth
-                        onClick={handleNextPage}>
-                    <NavigateNextIcon/>
-                </Button>
-            </Grid>
-        </Grid>
+            <PaginatorWithCombo pageId={pageId} setPageId={setPageId} pageCount={pageCount}/>
+        </Container>
     );
 }
 
@@ -155,7 +116,7 @@ export default function Novel() {
                         <BottomNavigationAction
                             label={"Delete"}
                             icon={<DeleteIcon color={"error"}/>}
-                            onClick={()=>deleteContent(`/api/novel/${id}`)}
+                            onClick={() => deleteContent(`/api/novel/${id}`)}
                         />
                     </BottomNavigation>
                 </Grid>

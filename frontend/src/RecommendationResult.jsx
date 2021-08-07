@@ -10,6 +10,7 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import {useQuery} from "react-query";
 import {createGetRequestUrl} from "./Utility";
 import ResultItem from "./ResultItem";
+import {Paginator} from "./components/Paginator";
 
 function ContentRecommendationResults({searchRange, page, pageSize}) {
     const {isLoading, error, data} = useQuery(
@@ -71,15 +72,6 @@ export default function ({name, searchRange}) {
     const [pageId, setPageId] = useQueryString("p", 1);
     const pageSize = 20;
 
-    const modifyPageId = (newPageId) => {
-        if (newPageId <= 1) {
-            setPageId(1);
-        } else {
-            setPageId(newPageId);
-        }
-    };
-
-
     return (
         <Container maxWidth="lg">
 
@@ -89,24 +81,7 @@ export default function ({name, searchRange}) {
                 pageSize={pageSize}
             />
 
-            {/*TODO modularization this*/}
-            <Grid container spacing={3}>
-                <Grid item sm={12} md={12} lg={12} xs={12}>
-                    <BottomNavigation>
-                        <BottomNavigationAction label="First" icon={<FirstPageIcon/>} onClick={() => modifyPageId(1)}/>
-                        <BottomNavigationAction label="Previous" icon={<NavigateBeforeIcon/>}
-                                                onClick={() => modifyPageId(pageId - 1)}/>
-                        <BottomNavigationAction label="Current" icon={<Icon>{pageId}</Icon>} onClick={() => {
-                            const pageIdInput = prompt("Please input page num:", `${pageId}`);
-                            if (pageIdInput != null) {
-                                modifyPageId(parseInt(pageIdInput));
-                            }
-                        }}/>
-                        <BottomNavigationAction label="Next" icon={<NavigateNextIcon/>}
-                                                onClick={() => modifyPageId(pageId + 1)}/>
-                    </BottomNavigation>
-                </Grid>
-            </Grid>
+            <Paginator pageId={pageId} setPageId={setPageId()}/>
 
         </Container>
     );
