@@ -22,12 +22,12 @@ import {
 } from '@material-ui/core';
 import {useQuery} from "react-query";
 
-import ResultItem from "./ResultItem";
-import theme from "./theme";
-import {createGetRequestUrl} from "./Utility";
+import ResultItem from "../components/ResultItem";
+import theme from "../theme";
+import {createGetRequestUrl} from "../Utility";
 
-import useQueryString from "./useQueryString";
-import {Paginator} from "./components/Paginator";
+import useQueryString from "../components/useQueryString";
+import {Paginator} from "../components/Paginator";
 
 const useStyles = makeStyles((theme) => ({
     heading: {

@@ -1,5 +1,5 @@
 import React from 'react';
-import useQueryString from "./useQueryString";
+import useQueryString from "../components/useQueryString";
 import {CircularProgress, Container, Grid, Typography} from "@material-ui/core";
 import BottomNavigation from "@material-ui/core/BottomNavigation";
 import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
@@ -8,9 +8,9 @@ import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import Icon from "@material-ui/core/Icon";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import {useQuery} from "react-query";
-import {createGetRequestUrl} from "./Utility";
-import ResultItem from "./ResultItem";
-import {Paginator} from "./components/Paginator";
+import {createGetRequestUrl} from "../Utility";
+import ResultItem from "../components/ResultItem";
+import {Paginator} from "../components/Paginator";
 
 function ContentRecommendationResults({searchRange, page, pageSize}) {
     const {isLoading, error, data} = useQuery(

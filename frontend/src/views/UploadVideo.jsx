@@ -12,7 +12,7 @@ import {
     Typography
 } from "@material-ui/core";
 // import {DropzoneArea} from "material-ui-dropzone";
-import {formatBytes, postData, postForm} from "./Utility";
+import {formatBytes, postData, postForm} from "../Utility";
 import {useHistory} from "react-router";
 import {useDropzone} from "react-dropzone";
 

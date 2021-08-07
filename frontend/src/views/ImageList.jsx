@@ -9,10 +9,10 @@ import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 
 import ThumbUpAltIcon from '@material-ui/icons/ThumbUpAlt';
 import ThumbDownAltIcon from '@material-ui/icons/ThumbDownAlt';
-import {createReactionOperations, deleteContent} from "./Utility";
+import {createReactionOperations, deleteContent} from "../Utility";
 import DeleteIcon from "@material-ui/icons/Delete";
-import DescriptionBlock from "./DescriptionBlock";
-import {PaginatorWithCombo} from "./components/Paginator";
+import DescriptionBlock from "../components/DescriptionBlock";
+import {PaginatorWithCombo} from "../components/Paginator";
 
 function GalleryWithoutPaginator({image_ids}) {
     return (

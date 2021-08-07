@@ -24,9 +24,9 @@ import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 
-import {arrayEquals, createReactionOperations, deleteContent, getCookie} from "./Utility";
-import DescriptionBlock from "./DescriptionBlock";
-import {PaginatorWithCombo} from "./components/Paginator";
+import {arrayEquals, createReactionOperations, deleteContent, getCookie} from "../Utility";
+import DescriptionBlock from "../components/DescriptionBlock";
+import {PaginatorWithCombo} from "../components/Paginator";
 
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;

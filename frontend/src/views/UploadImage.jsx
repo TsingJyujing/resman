@@ -1,7 +1,7 @@
 import React from 'react';
 import {Button, Checkbox, Container, FormControlLabel, TextField, Typography} from "@material-ui/core";
 import {DropzoneArea} from "material-ui-dropzone";
-import {postData, postForm} from "./Utility";
+import {postData, postForm} from "../Utility";
 import {useHistory} from "react-router";
 
 

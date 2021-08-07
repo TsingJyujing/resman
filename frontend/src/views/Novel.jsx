@@ -3,14 +3,14 @@ import {CircularProgress, Container, Grid} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
-import {createGetRequestUrl, createReactionOperations, deleteContent} from "./Utility";
+import {createGetRequestUrl, createReactionOperations, deleteContent} from "../Utility";
 import BottomNavigation from "@material-ui/core/BottomNavigation";
 import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import ThumbDownAltIcon from "@material-ui/icons/ThumbDownAlt";
 import DeleteIcon from "@material-ui/icons/Delete";
-import DescriptionBlock from "./DescriptionBlock";
-import {PaginatorWithCombo} from "./components/Paginator";
+import DescriptionBlock from "../components/DescriptionBlock";
+import {PaginatorWithCombo} from "../components/Paginator";
 
 function NovelPage({novelId}) {
     const pageSize = 4000;
