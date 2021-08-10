@@ -654,6 +654,8 @@ def get_model(user: User):
             model_info = pickle.load(fp)
             if model_info["expire_timestamp"] > time.time():
                 return model_info["model"]
+            else:
+                raise Exception("Model expired!")
     except Exception as ex:
         log.info("Falied to load model caused by:", exc_info=ex)
         model = train_model(user)
