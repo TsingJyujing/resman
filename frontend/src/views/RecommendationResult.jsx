@@ -1,12 +1,6 @@
 import React from 'react';
 import useQueryString from "../components/useQueryString";
 import {CircularProgress, Container, Grid, Typography} from "@material-ui/core";
-import BottomNavigation from "@material-ui/core/BottomNavigation";
-import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
-import FirstPageIcon from "@material-ui/icons/FirstPage";
-import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
-import Icon from "@material-ui/core/Icon";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import {useQuery} from "react-query";
 import {createGetRequestUrl} from "../Utility";
 import ResultItem from "../components/ResultItem";
@@ -81,7 +75,7 @@ export default function ({name, searchRange}) {
                 pageSize={pageSize}
             />
 
-            <Paginator pageId={pageId} setPageId={setPageId()}/>
+            <Paginator pageId={pageId} setPageId={setPageId}/>
 
         </Container>
     );
