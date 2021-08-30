@@ -7,7 +7,7 @@ with open("resman_client/README.md", "r") as fh:
 
 setup(
     name="resman-client",
-    version="1.4",
+    version="1.5",
     author="Tsing Jyujing",
     author_email="nigel434@gmail.com",
     description="Python client of Resman",
