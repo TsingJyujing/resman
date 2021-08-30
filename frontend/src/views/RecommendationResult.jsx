@@ -38,7 +38,6 @@ function ContentRecommendationResults({searchRange, page, pageSize}) {
     if (data.length > 0) {
         return (
             <Grid container spacing={3}>
-                {/*TODO modularization this*/}
                 {
                     data.map(postElement => (
                         <ResultItem key={postElement.id} post={{

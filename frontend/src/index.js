@@ -34,7 +34,7 @@ function NoMatch() {
 
 function Home() {
     return (
-        <Container><br/><br/>
+        <Container>
             <Typography component={"h4"} variant={"h4"}>Search</Typography>
             <Grid container spacing={3}>
                 {searchEntries.map(entry => (

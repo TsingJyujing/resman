@@ -202,7 +202,6 @@ export default function Search({name, searchRange}) {
 
     return (
         <Container maxWidth="lg">
-            <br/>
             <Grid container spacing={1}>
                 <Grid item xs={12}>
                     <TextField

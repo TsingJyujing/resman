@@ -1,143 +1,18 @@
 import React from 'react';
-import clsx from 'clsx';
-import {fade, makeStyles} from '@material-ui/core/styles';
-
-import {
-    AppBar,
-    Divider,
-    Drawer,
-    IconButton,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    Menu,
-    MenuItem,
-    Toolbar,
-    Typography,
-} from "@material-ui/core";
+import {createStyles, makeStyles, useTheme} from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import theme from "./theme"
-import {searchEntries, utilitiesEntries} from "./Config";
-import {createGetRequestUrl} from "./Utility";
 import GitHubIcon from '@material-ui/icons/GitHub';
+import Drawer from '@material-ui/core/Drawer';
+import Hidden from '@material-ui/core/Hidden';
+import {Divider, List, ListItem, ListItemIcon, ListItemText, Menu, MenuItem} from "@material-ui/core";
+import clsx from 'clsx';
+import {createGetRequestUrl} from "./Utility";
+import {searchEntries, utilitiesEntries} from "./Config";
 
-const drawerWidth = 240;
-
-const useStyles = makeStyles((theme) => ({
-    grow: {
-        flexGrow: 1,
-    },
-    menuButton: {
-        marginRight: theme.spacing(2),
-    },
-    title: {
-        display: 'none',
-        [theme.breakpoints.up('sm')]: {
-            display: 'block',
-        },
-    },
-    search: {
-        position: 'relative',
-        borderRadius: theme.shape.borderRadius,
-        backgroundColor: fade(theme.palette.common.white, 0.15),
-        '&:hover': {
-            backgroundColor: fade(theme.palette.common.white, 0.25),
-        },
-        marginRight: theme.spacing(2),
-        marginLeft: 0,
-        width: '100%',
-        [theme.breakpoints.up('sm')]: {
-            marginLeft: theme.spacing(3),
-            width: 'auto',
-        },
-    },
-    searchIcon: {
-        padding: theme.spacing(0, 2),
-        height: '100%',
-        position: 'absolute',
-        pointerEvents: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    inputRoot: {
-        color: 'inherit',
-    },
-    inputInput: {
-        padding: theme.spacing(1, 1, 1, 0),
-        // vertical padding + font size from searchIcon
-        paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
-        transition: theme.transitions.create('width'),
-        width: '100%',
-        [theme.breakpoints.up('md')]: {
-            width: '20ch',
-        },
-    },
-    sectionDesktop: {
-        display: 'none',
-        [theme.breakpoints.up('xs')]: {
-            display: 'flex',
-        },
-    },
-    sectionMobile: {
-        display: 'flex',
-        [theme.breakpoints.up('md')]: {
-            display: 'none',
-        },
-    },
-    appBar: {
-        transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-    },
-    appBarShift: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-        transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    },
-    hide: {
-        display: 'none',
-    },
-    drawer: {
-        width: drawerWidth,
-        flexShrink: 0,
-    },
-    drawerPaper: {
-        width: drawerWidth,
-    },
-    drawerHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        padding: theme.spacing(0, 1),
-        // necessary for content to be below app bar
-        ...theme.mixins.toolbar,
-        justifyContent: 'flex-end',
-    },
-    content: {
-        flexGrow: 1,
-        padding: theme.spacing(3),
-        transition: theme.transitions.create('margin', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-        marginLeft: -drawerWidth,
-    },
-    contentShift: {
-        transition: theme.transitions.create('margin', {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-        marginLeft: 0,
-    },
-}));
 
 function ItemCollection({entries, title}) {
     return (<List>
@@ -151,118 +26,158 @@ function ItemCollection({entries, title}) {
     </List>);
 }
 
-export default function BasicContainer(props) {
+const drawerWidth = 240;
+const useStyles = makeStyles((theme) =>
+    createStyles({
+        root: {
+            flexGrow: 1,
+        },
+        appBar: {
+            [theme.breakpoints.up('sm')]: {
+                width: `100%`,
+                marginLeft: drawerWidth,
+            },
+        },
+        appBarShift: {
+            width: `calc(100% - ${drawerWidth}px)`,
+            marginLeft: drawerWidth,
+            transition: theme.transitions.create(['margin', 'width'], {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+        },
+        menuButton: {
+            marginRight: theme.spacing(2),
+        },
+        title: {
+            flexGrow: 1,
+        },
+        toolbar: theme.mixins.toolbar,
+        drawer: {
+            width: drawerWidth,
+            flexShrink: 0,
+        },
+        drawerPaper: {
+            width: drawerWidth,
+        },
+        drawerHeader: {
+            display: 'flex',
+            alignItems: 'center',
+            padding: theme.spacing(0, 1),
+            // necessary for content to be below app bar
+            ...theme.mixins.toolbar,
+            justifyContent: 'flex-end',
+        },
+        content: {
+            flexGrow: 1,
+            padding: theme.spacing(3),
+            transition: theme.transitions.create('margin', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+            }),
+            marginLeft: 0,
+        },
+        contentShift: {
+            transition: theme.transitions.create('margin', {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+            marginLeft: 0,
+        },
+    }),
+);
+
+export default function AppBasic(props) {
     const classes = useStyles();
-
+    const theme = useTheme();
     const [anchorEl, setAnchorEl] = React.useState(null);
-    const [drawerOpen, setDrawerOpen] = React.useState(false);
-    const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-
     const isMenuOpen = Boolean(anchorEl);
-    const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-    const handleDrawerClose = () => {
-        setDrawerOpen(false);
+    const handleMenuClose = () => {
+        setAnchorEl(null);
     };
-
-    const handleDrawerChangeStatus = () => {
+    const container = window !== undefined ? () => window.document.body : undefined;
+    const [drawerOpen, setDrawerOpen] = React.useState(false);
+    const handleDrawerToggle = () => {
         setDrawerOpen(!drawerOpen);
     };
 
-    const handleProfileMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleMobileMenuClose = () => {
-        setMobileMoreAnchorEl(null);
-    };
-
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-        handleMobileMenuClose();
-    };
-
-    const menuId = 'primary-search-account-menu';
-    const renderMenu = (
-        <Menu
-            anchorEl={anchorEl}
-            anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-            id={menuId}
-            keepMounted
-            transformOrigin={{vertical: 'top', horizontal: 'right'}}
-            open={isMenuOpen}
-            onClose={handleMenuClose}
-        >
-            <MenuItem onClick={() => {
-                window.location = createGetRequestUrl(window.location, "/accounts/logout/", {})
-            }}>Logout</MenuItem>
-        </Menu>
+    const drawer = (
+        <div>
+            <div className={classes.toolbar}/>
+            <Divider/>
+            <ItemCollection entries={searchEntries} title={"Search"}/>
+            <Divider/><ItemCollection entries={utilitiesEntries} title={"Utilities"}/>
+            <Divider/>
+            <List>
+                <ListItem button component="a" key="source-code" href="https://github.com/TsingJyujing/resman"
+                          target={"_blank"}>
+                    <ListItemIcon><GitHubIcon/></ListItemIcon>
+                    <ListItemText primary="Source Code"/>
+                </ListItem>
+            </List>
+            <Divider/>
+        </div>
     );
 
     return (
-        <div className={classes.grow}>
-            <AppBar
-                position="fixed"
-                className={clsx(classes.appBar, {
-                    [classes.appBarShift]: drawerOpen,
-                })}
-            >
+        <div className={classes.root}>
+            <AppBar position="fixed" className={clsx(classes.appBar, {
+                [classes.appBarShift]: drawerOpen,
+            })}>
                 <Toolbar>
-                    <IconButton
-                        edge="start"
-                        className={clsx(classes.menuButton, drawerOpen && classes.hide)}
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={handleDrawerChangeStatus}
-                    >
+                    <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu"
+                                onClick={handleDrawerToggle}>
                         <MenuIcon/>
                     </IconButton>
-                    <Typography className={classes.title} variant="h6" noWrap>
+                    <Typography variant="h6" className={classes.title}>
                         Resman
                     </Typography>
-                    <div className={classes.grow}/>
-                    <div className={classes.sectionDesktop}>
-                        <IconButton
-                            edge="end"
-                            aria-label="account of current user"
-                            aria-controls={menuId}
-                            aria-haspopup="true"
-                            onClick={handleProfileMenuOpen}
-                            color="inherit"
-                        >
-                            <AccountCircle/>
-                        </IconButton>
-                    </div>
                 </Toolbar>
             </AppBar>
-            {renderMenu}
-            <Drawer
-                className={classes.drawer}
-                variant="persistent"
-                anchor="left"
-                open={drawerOpen}
-                classes={{
-                    paper: classes.drawerPaper,
-                }}
+            <nav className={classes.drawer} aria-label="mailbox folders">
+                <Hidden smUp implementation="css">
+                    <Drawer
+                        container={container}
+                        variant="temporary"
+                        anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+                        open={drawerOpen}
+                        onClose={handleDrawerToggle}
+                        classes={{
+                            paper: classes.drawerPaper,
+                        }}
+                        ModalProps={{
+                            keepMounted: true, // Better open performance on mobile.
+                        }}
+                    >
+                        {drawer}
+                    </Drawer>
+                </Hidden>
+            </nav>
+            <Menu
+                anchorEl={anchorEl}
+                anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                id='primary-search-account-menu'
+                keepMounted
+                transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                open={isMenuOpen}
+                onClose={handleMenuClose}
             >
-                <div className={classes.drawerHeader}>
-                    <IconButton onClick={handleDrawerClose}>
-                        {theme.direction === 'ltr' ? <ChevronLeftIcon/> : <ChevronRightIcon/>}
-                    </IconButton>
-                </div>
-                <Divider/><ItemCollection entries={searchEntries} title={"Search"}/>
-                <Divider/><ItemCollection entries={utilitiesEntries} title={"Utilities"}/>
-                <Divider/>
-                <List>
-                    <ListItem button component="a" key="source-code" href="https://github.com/TsingJyujing/resman" target={"_blank"}>
-                        <ListItemIcon><GitHubIcon/></ListItemIcon>
-                        <ListItemText primary="Source Code"/>
-                    </ListItem>
-                </List>
-                <Divider/>
-            </Drawer>
-            <div className={classes.drawerHeader}/>
-            {props.children}
+                <MenuItem
+                    onClick={() => {
+                        window.location = createGetRequestUrl(window.location, "/accounts/logout/", {})
+                    }}
+                >
+                    Logout
+                </MenuItem>
+            </Menu>
+            );
+            <main className={clsx(classes.content, {
+                [classes.contentShift]: drawerOpen,
+            })}>
+                <div className={classes.drawerHeader}/>
+                {props.children}
+            </main>
         </div>
     );
 }
+
