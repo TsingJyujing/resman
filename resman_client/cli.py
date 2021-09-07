@@ -210,13 +210,49 @@ def upload_image(
         ))
 
 
+@upload.command("novels")
+@click.option("--like/--no-like", default=False, help="Set like to this set")
+@click.option("--path", help="Search path of image files")
+@click.option("-y/-n", default=False, help="Do not confirm before uploading")
+@click.pass_obj
+def upload_novels(
+        rc: ResmanClient,
+        like: bool,
+        path: str,
+        y: bool
+):
+    path = path or click.prompt("Input path of the file(s)")
+    novel_files = sorted(search_file_in_path(path, {".txt"}))
+    if len(novel_files) <= 0:
+        raise Exception(f"Can't find file in path {path}")
+    for novel_file in novel_files:
+        title = Path(novel_file).stem
+        print(f"Title: {title}\nSet Like: {like}File:\n{novel_file} Size:{pretty_size(os.path.getsize(novel_file))}")
+
+    if y or click.confirm("Upload these files?"):
+        log.info(f"Creating the novels...")
+        for novel_file in novel_files:
+            try:
+                title = Path(novel_file).stem
+                text = "\n".join(read_file(novel_file))
+                n = rc.create_novel(Novel(
+                    title=title,
+                    data={"upload_filename": novel_file},
+                ), text=text)
+                if like:
+                    n.reaction = True
+                log.info("Novel uploaded successfully, please check {}".format(rc.make_url(f"novel/{n.object_id}")))
+            except Exception as ex:
+                log.error(f"Error while processing {novel_file}", exc_info=ex)
+
+
 @upload.command("novel")
 @click.option("--title", help="Title of the image set")
 @click.option("--like/--no-like", default=False, help="Set like to this set")
 @click.option("--path", help="Search path of image files")
 @click.option("-y/-n", default=False, help="Do not confirm before uploading")
 @click.pass_obj
-def upload_image(
+def upload_novel(
         rc: ResmanClient,
         title: str,
         like: bool,
@@ -243,40 +279,6 @@ def upload_image(
         if like:
             n.reaction = True
         log.info("Novel uploaded successfully, please check {}".format(rc.make_url(f"novel/{n.object_id}")))
-
-
-@upload.command("novels")
-@click.option("--like/--no-like", default=False, help="Set like to this set")
-@click.option("--path", help="Search path of image files")
-@click.option("-y/-n", default=False, help="Do not confirm before uploading")
-@click.pass_obj
-def upload_image(
-        rc: ResmanClient,
-        like: bool,
-        path: str,
-        y: bool
-):
-    path = path or click.prompt("Input path of the file(s)")
-    novel_files = search_file_in_path(path, {".txt"})
-    if len(novel_files) <= 0:
-        raise Exception(f"Can't find file in path {path}")
-    elif len(novel_files) > 1:
-        raise Exception(f"We found {len(novel_files)} files, you can only upload one file once")
-    for novel_file in novel_files:
-        title = Path(novel_file).stem
-        print(f"Title: {title}\nSet Like: {like}File:\n{novel_file} Size:{pretty_size(os.path.getsize(novel_file))}")
-
-    if y or click.confirm("Upload these files?"):
-        log.info(f"Creating the novels...")
-        for novel_file in novel_files:
-            title = Path(novel_file).stem
-            n = rc.create_novel(Novel(
-                title=title,
-                data={"upload_filename": novel_file},
-            ), text="\n".join(read_file(novel_file)))
-            if like:
-                n.reaction = True
-            log.info("Novel uploaded successfully, please check {}".format(rc.make_url(f"novel/{n.object_id}")))
 
 
 if __name__ == '__main__':
