@@ -47,8 +47,8 @@ function NovelPage({novelId}) {
 
     return (
         <Container>
-            <Grid container spacing={3}>
-                <Grid item spacing={3} xs={12}>
+            <Grid container spacing={1}>
+                <Grid item xs={12}>
                     <DescriptionBlock text={data["text"]}/>
                 </Grid>
             </Grid>

@@ -59,7 +59,7 @@ function GalleryWithPaginator({image_ids, pageSize}) {
                     slicedImages.map(image_id => {
 
                         return (
-                            <Grid item spacing={3} lg={pageSize === 1 ? 12 : 4} md={pageSize === 1 ? 12 : 6} sm={12}
+                            <Grid item lg={pageSize === 1 ? 12 : 4} md={pageSize === 1 ? 12 : 6} sm={12}
                                   xs={12}>
                                 <img src={`/api/image/${image_id}`} alt={image_id} loading={"lazy"}
                                      width={"100%"}/>

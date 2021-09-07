@@ -121,7 +121,7 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
     }
     if (data.length > 0) {
         return (
-            <Grid container spacing={3}>
+            <Grid container spacing={1}>
                 {
                     data.map(postElement => (
                         <ResultItem key={postElement.id} post={{
