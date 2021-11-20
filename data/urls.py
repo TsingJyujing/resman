@@ -12,7 +12,9 @@ from data.views import (
     GetImageDataViewWithCache,
     ExpandSearchByW2V,
     RecommendImageList,
+    StorageReport,
 )
+from resman.settings import DEBUG
 
 router = DefaultRouter(trailing_slash=False)
 router.register(r"imagelist", viewset=ImageListViewSet, basename="imagelist")
@@ -30,5 +32,11 @@ urlpatterns = [
     path("video/upload", UploadS3VideoView.as_view()),
     path("nlp/query_expand", ExpandSearchByW2V.as_view()),
     path("recsys/imagelist", RecommendImageList.as_view()),
-    path("", include(router.urls)),
 ]
+if DEBUG:
+    urlpatterns.append(
+        path("developer/storage/report", StorageReport.as_view()),
+    )
+urlpatterns.append(
+    path("", include(router.urls)),
+)

@@ -10,12 +10,15 @@ from abc import abstractmethod
 from functools import lru_cache, reduce
 from io import BytesIO
 from math import ceil
+from textwrap import dedent
 from typing import Sequence, Tuple, List
 from uuid import uuid1
 
 import magic
+import pandas
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Case, When
 from django.db.models import Q
 from django.http import HttpResponse
@@ -25,6 +28,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from tqdm import tqdm
 from whoosh.fields import Schema
 from whoosh.query import Term
 from whoosh.query.compound import Or
@@ -711,3 +715,63 @@ class RecommendImageList(APIView):
             ))
         )
         return Response(serialized_data)
+
+
+class StorageReport(APIView):
+    def get(self, request: Request):
+        minio_client = get_default_minio_client()
+        rows = []
+        with connection.cursor() as cursor:
+            cursor.execute(dedent(f"""
+            SELECT
+                   bucket,
+                   object_name,
+                   'video' as type,
+                   liked_video.thread_id is not null as liked
+            FROM data_s3video
+                     LEFT JOIN (
+                SELECT thread_id
+                FROM data_reactiontovideolist
+                WHERE owner_id = 1
+                  AND positive_reaction
+            ) liked_video ON data_s3video.thread_id = liked_video.thread_id
+            UNION ALL
+            SELECT
+                   bucket,
+                   object_name,
+                   'image' as type,
+                   liked_image.thread_id is not null as liked
+            FROM data_s3image
+                     INNER JOIN (
+                SELECT thread_id
+                FROM data_reactiontoimagelist
+                WHERE owner_id = 1
+                  AND positive_reaction
+            ) liked_image ON data_s3image.thread_id = liked_image.thread_id
+            UNION ALL
+            SELECT bucket, object_name, 'novel' as type, liked_novel.thread_id is not null as liked
+            FROM data_novel
+                     INNER JOIN (
+                SELECT thread_id
+                FROM data_reactiontonovel
+                WHERE owner_id = 1
+                  AND positive_reaction
+            ) liked_novel ON data_novel.id = liked_novel.thread_id
+            """))
+
+            for row in tqdm(cursor.fetchall()):
+                rows.append({
+                    "type": row[2],
+                    "liked": row[3],
+                    "bucket": row[0],
+                    "object_name": row[1],
+                    "size": minio_client.stat_object(row[0], row[1]).size,
+                })
+        df = (pandas.DataFrame(rows)
+              .groupby(by=["bucket", "type", "liked"])
+              .agg({"object_name": "count", "size": "sum"})
+              .reset_index()
+              .rename(columns={"object_name": "object_count"})
+              )
+        df["size_in_gb"] = df["size"] / (1024 ** 3)
+        return Response(df.to_dict())
