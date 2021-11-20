@@ -30,6 +30,6 @@ RUN mkdir nlp_resources && cd nlp_resources && \
     cd /app
 COPY --from=POETRY_EXPORT /app/requirements.txt /app/
 RUN pip install -r requirements.txt
-ENV DEV_MODE=0
+ENV DEBUG=0
 COPY --from=CODE_CLEANER /app/ /app/
 COPY --from=BUILD_FRONTEND /app/build/ /app/frontend/build/
