@@ -3,7 +3,7 @@ import json
 import os
 import traceback
 from typing import BinaryIO
-from resman.settings import DEV_MODE
+from resman.settings import DEBUG
 from django.http import HttpResponse
 
 
@@ -123,7 +123,7 @@ def response_json(func):
 
 def debug_api(func):
     def wrapper(request):
-        if DEV_MODE:
+        if DEBUG:
             return func(request)
         else:
             resp = get_json_response({

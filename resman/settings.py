@@ -14,6 +14,7 @@ import logging
 import os
 # Build paths inside the project like this: os.object_name.join(BASE_DIR, ...)
 from urllib.parse import urlparse, unquote
+from warnings import warn
 
 log = logging.getLogger("DJANGO_SETTINGS")
 
@@ -25,8 +26,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'xmg@8-2c-03^@3e9qrdtuu$-@j2)m^7xd(+g6u08u9vqb0ldmv'
 
-DEV_MODE = int(os.environ.get("DEV_MODE", "1")) != 0
-DEBUG = True
+DEBUG = int(os.environ.get("DEBUG", "1")) != 0
+if DEBUG:
+    warn("You're running in DEBUG mode.")
 
 
 def environ_get(variable_name: str, default_value: str = None):
@@ -37,7 +39,7 @@ def environ_get(variable_name: str, default_value: str = None):
     :param default_value: Default value in debug mode
     :return:
     """
-    if not (variable_name in os.environ or DEV_MODE):
+    if not (variable_name in os.environ or DEBUG):
         raise KeyError(f"Environment variable {variable_name} not set in production model")
     return os.environ.get(variable_name, default_value)
 
@@ -58,7 +60,8 @@ INSTALLED_APPS = [
     "data",
     "pages",
 ]
-CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ORIGIN_ALLOW_ALL = DEBUG
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -182,7 +185,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 FRONTEND_BUILD_RESULT_DIR = os.path.join(BASE_DIR, "frontend/build")
 FRONTEND_STATICFILES_DIR = os.path.join(FRONTEND_BUILD_RESULT_DIR, "static")
-STATICFILES_DIRS = [FRONTEND_STATICFILES_DIR]
+STATICFILES_DIRS = [] if DEBUG else [FRONTEND_STATICFILES_DIR]
 
 # e.x. https://access_key:secret_key@s3.xxx.com/
 DEFAULT_S3_CONFIG = environ_get("S3_CONFIG", "http://resman:resman_password@127.0.0.1:9000/")
