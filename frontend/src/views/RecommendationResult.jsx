@@ -11,7 +11,6 @@ function ContentRecommendationResults({searchRange, page, pageSize}) {
         `Recommend(${searchRange})(p=${page},n=${pageSize})`,
         () => fetch(
             createGetRequestUrl(
-                window.location,
                 `/api/recsys/${searchRange}`,
                 {
                     "p": page,

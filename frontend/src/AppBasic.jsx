@@ -164,7 +164,7 @@ export default function AppBasic(props) {
             >
                 <MenuItem
                     onClick={() => {
-                        window.location = createGetRequestUrl(window.location, "/accounts/logout/", {})
+                        window.location = createGetRequestUrl("/accounts/logout/", {})
                     }}
                 >
                     Logout

@@ -1,7 +1,7 @@
 import $ from 'jquery';
 
-export function createGetRequestUrl(baseUrl, path, queryParameters) {
-    let url = new URL(baseUrl);
+export function createGetRequestUrl(path, queryParameters) {
+    let url = new URL(window.location);
     url.pathname = path;
     url.search = new URLSearchParams(queryParameters).toString();
     return url;

@@ -25,7 +25,6 @@ import {useQuery} from "react-query";
 import ResultItem from "../components/ResultItem";
 import theme from "../theme";
 import {createGetRequestUrl} from "../Utility";
-
 import useQueryString from "../components/useQueryString";
 import {Paginator} from "../components/Paginator";
 
@@ -48,7 +47,6 @@ function SearchExplanation({query, similarWords}) {
         `Explain Search(${JSON.stringify(queryCondition)})`,
         () => fetch(
             createGetRequestUrl(
-                window.location,
                 `/api/nlp/query_expand`,
                 queryCondition
             ).toString()
@@ -98,7 +96,6 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
         `Query(${searchRange})(${JSON.stringify(queryCondition)})`,
         () => fetch(
             createGetRequestUrl(
-                window.location,
                 `/api/${searchRange}`,
                 queryCondition
             ).toString()

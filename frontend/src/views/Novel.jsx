@@ -20,7 +20,6 @@ function NovelPage({novelId}) {
         `novel-page-${novelId}-${pageId}-${pageSize}`,
         () => fetch(
             createGetRequestUrl(
-                window.location,
                 `/api/novel/${novelId}/data`,
                 {
                     "n": pageSize, "p": pageId
