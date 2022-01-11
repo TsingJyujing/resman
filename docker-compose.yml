@@ -1,0 +1,67 @@
+version: "3"
+services:
+  db:
+    image: "postgres:14"
+    environment:
+      POSTGRES_USER: resman
+      POSTGRES_PASSWORD: resman_test
+      PGDATA: "/data"
+    volumes:
+      - "db-data:/data"
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:6
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 30s
+      retries: 50
+    volumes:
+      - ./debug/redis.conf:/usr/local/etc/redis/redis.conf
+  minio:
+    image: minio/minio
+    ports:
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: "resman-resman"
+      MINIO_ROOT_PASSWORD: "resman-resman"
+    volumes:
+      - s3-data:/data
+    command:
+      - "server"
+      - "/data"
+      - "--console-address"
+      - ":9001"
+  api:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+      args:
+        PIP_INDEX_URL: https://nexus.tsingjyujing.com/repository/pypi-proxy/simple
+        YARN_REGISTRY: https://nexus.tsingjyujing.com/repository/npm/
+    depends_on:
+      - "db"
+      - "redis"
+      - "minio"
+    ports:
+      - "8000:8000"
+    environment:
+      USING_DB: postgres
+      PG_CONFIG: "postgres://resman:resman_test@db:5432/"
+      WHOOSH_PATH: /data/whoosh_index
+      RECSYS_MODEL_PATH: /data/recsys_model
+      S3_CONFIG: http://resman-resman:resman-resman@minio:9000/
+      S3_BUCKET: resman
+      CACHE_REDIS_CONFIG: redis://redis:6379
+      ADMIN_NAME: resman
+      DEBUG: "1"
+      ADMIN_PASSWORD: resman_test
+    command: [ "/app/debug/django-entrypoint-dev.sh", "python", "manage.py", "runserver", "0.0.0.0:8000" ]
+    volumes:
+      - "api-data:/data"
+      - ".:/app/"
+volumes:
+  db-data:
+  s3-data:
+  api-data:

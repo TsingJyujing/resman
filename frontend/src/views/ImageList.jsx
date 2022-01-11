@@ -1,6 +1,6 @@
 import React from 'react';
 import LazyLoad from 'react-lazy-load';
-import {CircularProgress, Container, FormControl, Grid, InputLabel, MenuItem, Select} from "@material-ui/core";
+import {CircularProgress, Container, FormControl, Grid, InputLabel, Link, MenuItem, Select} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import {useParams} from 'react-router-dom';
 import {useQuery} from "react-query";
@@ -76,6 +76,18 @@ function GalleryWithPaginator({image_ids, pageSize}) {
 
 }
 
+function TitleWithOriginalLink({title, data}){
+    if ("url" in data){
+        return (
+            <Typography variant={"h4"} gutterBottom><Link href={data.url}>{title}</Link></Typography>
+        )
+    }else{
+        return (
+            <Typography variant={"h4"} gutterBottom>{title}</Typography>
+        )
+    }
+}
+
 
 export default function ImageList() {
     const {id} = useParams();
@@ -115,9 +127,8 @@ export default function ImageList() {
     return (
         <Container maxWidth={"lg"}>
             <br/>
-            <Typography variant={"h4"} gutterBottom>
-                {data.title || "Loading..."}
-            </Typography>
+
+            <TitleWithOriginalLink title={data.title || "Loading"} data={data.data}/>
 
             <DescriptionBlock text={data.description} variant={"h6"}/>
 

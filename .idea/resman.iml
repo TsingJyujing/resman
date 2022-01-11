@@ -13,24 +13,11 @@
     </facet>
   </component>
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$">
-      <excludeFolder url="file://$MODULE_DIR$/dev" />
-      <excludeFolder url="file://$MODULE_DIR$/whoosh_index" />
-      <excludeFolder url="file://$MODULE_DIR$/.ipynb_checkpoints" />
-      <excludeFolder url="file://$MODULE_DIR$/frontend/build" />
-      <excludeFolder url="file://$MODULE_DIR$/dist" />
-      <excludeFolder url="file://$MODULE_DIR$/build" />
-    </content>
+    <content url="file://$MODULE_DIR$" />
     <orderEntry type="jdk" jdkName="Poetry (resman)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />
-    <option name="TEMPLATE_FOLDERS">
-      <list>
-        <option value="$MODULE_DIR$/templates" />
-        <option value="$MODULE_DIR$/frontend/dist" />
-      </list>
-    </option>
   </component>
 </module>

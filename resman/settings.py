@@ -185,7 +185,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 FRONTEND_BUILD_RESULT_DIR = os.path.join(BASE_DIR, "frontend/build")
 FRONTEND_STATICFILES_DIR = os.path.join(FRONTEND_BUILD_RESULT_DIR, "static")
-STATICFILES_DIRS = [] if DEBUG else [FRONTEND_STATICFILES_DIR]
+STATICFILES_DIRS = [FRONTEND_STATICFILES_DIR]
 
 # e.x. https://access_key:secret_key@s3.xxx.com/
 DEFAULT_S3_CONFIG = environ_get("S3_CONFIG", "http://resman:resman_password@127.0.0.1:9000/")
@@ -198,7 +198,7 @@ WHOOSH_PATH = environ_get(
 if not os.path.isdir(WHOOSH_PATH):
     os.makedirs(WHOOSH_PATH)
 
-IMAGE_CACHE_SIZE = int(os.environ.get("IMAGE_CACHE_SIZE", "32"))
+CACHE_REDIS_CONFIG = environ_get("CACHE_REDIS_CONFIG")
 
 RECSYS_MODEL_PATH = environ_get(
     "RECSYS_MODEL_PATH",

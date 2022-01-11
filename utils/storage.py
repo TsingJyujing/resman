@@ -1,13 +1,33 @@
 import logging
+import pickle
 from io import BytesIO
-from typing import Iterator
+from typing import Iterator, Optional, Any
 from urllib.parse import urlparse, unquote
 
 from minio import Minio
+from redis import Redis
 
-from resman.settings import DEFAULT_S3_CONFIG, DEFAULT_S3_BUCKET
+from resman.settings import DEFAULT_S3_CONFIG, DEFAULT_S3_BUCKET, CACHE_REDIS_CONFIG
 
 log = logging.getLogger(__file__)
+
+redis_client = Redis.from_url(CACHE_REDIS_CONFIG) if CACHE_REDIS_CONFIG is not None else None
+
+
+def redis_cache_get(key: str) -> Optional[Any]:
+    if redis_client is not None:
+        value = redis_client.get(key)
+        if value is not None:
+            return pickle.loads(value)
+        else:
+            return None
+    else:
+        return None
+
+
+def redis_cache_set(key: str, value: Any):
+    if redis_client is not None:
+        redis_client.set(key, pickle.dumps(value))
 
 
 def create_minio_client_from_config(s3_config: str) -> Minio:

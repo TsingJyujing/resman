@@ -36,11 +36,11 @@ from whoosh.query.compound import Or
 from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Video, ReactionToVideoList, Novel, \
     ReactionToNovel, Event
 from data.serializers import ImageListSerializer, VideoListSerializer, NovelSerializer
-from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, IMAGE_CACHE_SIZE, RECSYS_MODEL_PATH
+from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, RECSYS_MODEL_PATH
 from utils.nlp.w2v_search import title_expand
 from utils.recsys.lr_recsys import train_model, get_aggregated_logs
 from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
-from utils.storage import create_default_minio_client, get_default_minio_client
+from utils.storage import create_default_minio_client, get_default_minio_client, redis_cache_get, redis_cache_set
 
 log = logging.getLogger(__file__)
 
@@ -493,14 +493,19 @@ class GetImageDataViewWithCache(APIView):
     IMAGE_404_CONTENT_TYPE = magic.from_buffer("image/png", mime=True)
 
     @staticmethod
-    @lru_cache(maxsize=IMAGE_CACHE_SIZE)
     def load_image(bucket: str, object_name: str) -> Tuple[bytes, str]:
+        key = f"{bucket}/{object_name}"
+        result = redis_cache_get(key)
+        if result is not None:
+            return result
         file_object = create_default_minio_client().get_object(
             bucket,
             object_name,
         )
         content_type = file_object.headers.get("Content-Type")
-        return file_object.data, content_type
+        file_data = file_object.data
+        redis_cache_set(key, (file_data, content_type))
+        return file_data, content_type
 
     def get(self, request: Request, image_id: int):
         try:
