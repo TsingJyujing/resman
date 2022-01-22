@@ -2,12 +2,14 @@ import json
 import logging
 import os
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Set, List, Iterable
 
 import chardet
 import click
 
 from resman_client.client import ResmanClient, VideoList, ImageList, Novel
+from resman_client.ffmpeg_util import convert_video_to_h264
 
 log = logging.getLogger("Resman Client")
 
@@ -120,25 +122,25 @@ def upload_video(
 ):
     path = path or click.prompt("Input path of the file(s)")
 
-    video_files = search_file_in_path(path, {".mp4"})
+    video_files = search_file_in_path(path, {".mp4", ".avi", ".mkv", ".wmv", ".3gp", ".mdf"})
     if len(video_files) <= 0:
         raise Exception(f"Can't find file in path {path}")
     video_files = sorted(video_files)
 
-    title = title or click.prompt("Input title of the video", default=(
-        Path(video_files[0]).stem if len(video_files) == 1 else Path(path).stem
-    ))
-    description = description or click.prompt("Input description of the video", default="")
-
     print(f"Title: {title}\nDescription: {description}\nSet Like: {like}")
     print("Files:")
     sum_size = 0
-    for mp4_file in video_files:
-        file_size = os.path.getsize(mp4_file)
+    for video_file in video_files:
+        file_size = os.path.getsize(video_file)
         sum_size += file_size
         size_str = pretty_size(file_size)
-        print(f"File: {mp4_file} Size: {size_str}")
+        print(f"File: {video_file} Size: {size_str}")
     print(f"Sum of the files size: {pretty_size(sum_size)}")
+
+    title = title or click.prompt("Input title of the video", default=(
+        Path(video_files[0]).stem if len(video_files) == 1 else Path(path).stem
+    ))
+    description = description or click.prompt("Input description of the video", default="\n".join(video_file))
 
     if y or click.confirm("Upload these files?"):
         log.info(f"Creating the video list...")
@@ -151,9 +153,12 @@ def upload_video(
         ))
         if like:
             vl.reaction = True
-        for i, mp4_file in enumerate(video_files):
-            log.info(f"Uploading {mp4_file}...")
-            vl.upload_mp4_video(mp4_file, i)
+        with TemporaryDirectory() as td:
+            log.debug(f"Converting files to {td}")
+            for i, video_file in enumerate(video_files):
+                filename_h264 = os.path.join(td, f"{i}.mp4")
+                convert_video_to_h264(video_file, filename_h264)
+                vl.upload_mp4_video(filename_h264, i)
         log.info("Videos uploaded successfully, please check {}".format(
             rc.make_url(f"videolist/{vl.object_id}")
         ))
@@ -279,6 +284,64 @@ def upload_novel(
         if like:
             n.reaction = True
         log.info("Novel uploaded successfully, please check {}".format(rc.make_url(f"novel/{n.object_id}")))
+
+
+@main.group()
+@click.option("--server-name", required=True, help="Which config to use.")
+@click.pass_context
+def convert(ctx, server_name: str):
+    config_file = os.path.expanduser(f"~/.config/resman/{server_name}.json")
+    log.debug(f"Loading config from {config_file}")
+    with open(config_file, "r") as fp:
+        data = json.load(fp)
+    ctx.obj = ResmanClient(
+        endpoint=data["endpoint"],
+        user=data["user"],
+        password=data["pass"]
+    )
+
+
+@convert.command("video")
+@click.argument("vid", type=int)
+@click.option("-remove/-keep", default=True, help="Remove video list after successfully converted")
+@click.pass_obj
+def upload_video(
+        rc: ResmanClient,
+        vid: int,
+        remove: bool,
+):
+    video_list = rc.get_video_list(vid)
+    video_list_data = video_list.data
+    new_video_list = rc.create_video_list(VideoList(
+        title=video_list_data["title"],
+        description=video_list_data["description"],
+        data=video_list_data["data"],
+    ))
+    new_video_list.reaction = video_list.reaction
+    try:
+        log.info(f"Converting video list {vid} -> {new_video_list.object_id}")
+        with TemporaryDirectory() as td:
+            log.debug(f"Converting files to {td}")
+            for i, video_id in enumerate(video_list_data["videos"]):
+                log.info(f"Downloading video #{i}: {video_id}")
+                downloaded_file = os.path.join(td, f"{i}.mp4")
+                converted_file = os.path.join(td, f"{i}_h264.mp4")
+                with open(downloaded_file, "wb") as fp:
+                    with rc.get(f"/api/video/{video_id}", stream=True) as resp:
+                        resp.raise_for_status()
+                        for chunk in resp.iter_content(chunk_size=1024 * 1024):
+                            if chunk:
+                                fp.write(chunk)
+                log.info(f"Converting to correct codec...")
+                convert_video_to_h264(downloaded_file, converted_file)
+                log.info(f"Uploading...")
+                new_video_list.upload_mp4_video(converted_file, i)
+    except BaseException as ex:
+        new_video_list.destroy()
+        log.error(f"Error while converting video list {vid} caused by:", exc_info=ex)
+        raise ex
+    if remove:
+        video_list.destroy()
 
 
 if __name__ == '__main__':
