@@ -305,7 +305,7 @@ def convert(ctx, server_name: str):
 @click.argument("vid", type=int)
 @click.option("-remove/-keep", default=True, help="Remove video list after successfully converted")
 @click.pass_obj
-def upload_video(
+def convert_video(
         rc: ResmanClient,
         vid: int,
         remove: bool,
