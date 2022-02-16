@@ -140,7 +140,7 @@ def upload_video(
     title = title or click.prompt("Input title of the video", default=(
         Path(video_files[0]).stem if len(video_files) == 1 else Path(path).stem
     ))
-    description = description or click.prompt("Input description of the video", default="\n".join(video_file))
+    description = description or click.prompt("Input description of the video", default="\n".join(video_files))
 
     if y or click.confirm("Upload these files?"):
         log.info(f"Creating the video list...")

@@ -31,5 +31,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: tsingjyujing/resman:latest
-          cache-from: type=registry,ref=tsingjyujing/resman:buildcache
-          cache-to: type=registry,ref=tsingjyujing/resman:buildcache,mode=max
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/resman:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/resman:buildcache,mode=max

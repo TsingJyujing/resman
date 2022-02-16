@@ -64,9 +64,9 @@ def is_h264_qsv_available():
     )
 
 
-def convert_video_to_h264(input_file: str, output_file: str):
+def convert_video_to_h264(input_file: str, output_file: str, use_qsv: bool = False):
     if get_video_codec(input_file) != "h264":
-        func = convert_file_codec_qsv if is_h264_qsv_available() else convert_file_codec
+        func = convert_file_codec_qsv if is_h264_qsv_available() and use_qsv else convert_file_codec
     else:
         func = copy_codec
     return func(input_file, output_file, get_audio_codec(input_file) != "aac")
