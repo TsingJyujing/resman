@@ -68,15 +68,15 @@ export function Paginator({pageId, setPageId}) {
                 <BottomNavigation>
                     <BottomNavigationAction label="First" icon={<FirstPageIcon/>} onClick={() => modifyPageId(1)}/>
                     <BottomNavigationAction label="Previous" icon={<NavigateBeforeIcon/>}
-                                            onClick={() => modifyPageId(pageId - 1)}/>
-                    <BottomNavigationAction label="Current" icon={<Icon>{pageId}</Icon>} onClick={() => {
-                        const pageIdInput = prompt("Please input page num:", `${pageId}`);
+                                            onClick={() => modifyPageId(parseInt(pageId) - 1)}/>
+                    <BottomNavigationAction label="Current" icon={<Icon>{parseInt(pageId)}</Icon>} onClick={() => {
+                        const pageIdInput = prompt("Please input page num:", `${parseInt(pageId)}`);
                         if (pageIdInput != null) {
                             modifyPageId(parseInt(pageIdInput));
                         }
                     }}/>
                     <BottomNavigationAction label="Next" icon={<NavigateNextIcon/>}
-                                            onClick={() => modifyPageId(pageId + 1)}/>
+                                            onClick={() => modifyPageId(parseInt(pageId) + 1)}/>
                 </BottomNavigation>
             </Grid>
         </Grid>
