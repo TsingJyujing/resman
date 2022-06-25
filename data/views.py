@@ -7,7 +7,7 @@ import pickle
 import re
 import time
 from abc import abstractmethod
-from functools import lru_cache, reduce
+from functools import reduce
 from io import BytesIO
 from math import ceil
 from textwrap import dedent
@@ -537,6 +537,16 @@ class GetImageDataViewWithCache(APIView):
 
 class GetVideoStream(APIView):
     range_re = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+
+    def delete(self, request, video_id: int):
+        s3_video: S3Video = S3Video.objects.get(id=video_id)
+        minio_client = get_default_minio_client()
+        minio_client.remove_object(
+            s3_video.bucket,
+            s3_video.object_name
+        )
+        s3_video.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request: Request, video_id: int):
         s3_video: S3Video = S3Video.objects.get(id=video_id)
