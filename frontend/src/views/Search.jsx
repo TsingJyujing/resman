@@ -177,8 +177,8 @@ export default function Search({name, searchRange}) {
         handleClickSearch();
     }
 
-    const [searchKeywords, setSearchKeywords] = React.useState("");
-    const [query, setQuery] = useQueryString("q", searchKeywords);
+    const [query, setQuery] = useQueryString("q", "");
+    const [searchKeywords, setSearchKeywords] = React.useState(query);
 
     const handleSearchKeywords = (event) => {
         setSearchKeywords(event.target.value);
