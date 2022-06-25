@@ -28,10 +28,6 @@ import {arrayEquals, createReactionOperations, deleteContent, getCookie} from ".
 import DescriptionBlock from "../components/DescriptionBlock";
 import {PaginatorWithCombo} from "../components/Paginator";
 
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 function VideoGallery({videoIdList}) {
     const [pageId, setPageId] = React.useState(1);
     const pageCount = videoIdList.length;
@@ -51,6 +47,14 @@ function VideoGallery({videoIdList}) {
                         <source src={`/api/video/${videoId}`} type={"video/mp4"}/>
                         {"Sorry, your browser doesn't support embedded videos."}
                     </video>
+                </Grid>
+                <Grid item lg={12} md={12} sm={12} xs={12} key={`/api/video/${videoId}`}>
+                    <Button
+                        color="secondary"
+                        onClick={() => deleteContent(`/api/video/${id}`)}
+                    >
+                        Delete This Video
+                    </Button>
                 </Grid>
             </Grid>
             <PaginatorWithCombo pageId={pageId} setPageId={setPageId} pageCount={pageCount}/>
@@ -231,11 +235,11 @@ export default function VideoList() {
                         />
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={modifyData} color="primary">
-                            Modify
-                        </Button>
                         <Button onClick={() => setOpen(false)} color="primary">
                             Cancel
+                        </Button>
+                        <Button onClick={modifyData} color="primary">
+                            Modify
                         </Button>
                     </DialogActions>
                 </Dialog>
