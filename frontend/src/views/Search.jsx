@@ -151,7 +151,7 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
 export default function Search({name, searchRange}) {
     const classes = useStyles();
 
-    const [pageId, setPageId] = useQueryString("p", 1);
+    const [pageId, setPageId] = useQueryString("p", "1");
 
     const [searchAccuracy, setSearchAccuracy] = useQueryString("a", 'contains_or');
     const handleSearchAccuracyChange = (event) => {
