@@ -6,7 +6,7 @@ from typing import Dict
 
 import pandas
 from django.contrib.auth.models import User
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
@@ -65,23 +65,21 @@ def collect_imagelist_training_data(user: User, training_data_days: int = 180) -
     return pandas.DataFrame(rows)
 
 
-def train_model(user: User, training_data_days: int = 180, lr_C: float = 4.0):
-    vectorizor = CountVectorizer(
+def train_model(user: User, training_data_days: int = 180):
+    vectorizor = TfidfVectorizer(
         analyzer=tokenizer,
         lowercase=False,
-        max_df=0.95,
-        min_df=3,
     ).fit([x["title"] for x in ImageList.objects.all().values("title")])
     df = collect_imagelist_training_data(user, training_data_days)
     X_train, X_test, y_train, y_test = train_test_split(
         vectorizor.transform(df["title"].tolist()),
         df["y"].to_numpy(),
-        test_size=0.15,
+        test_size=0.1,
         random_state=0
     )
     lr_model = LogisticRegression(
-        C=lr_C,
-        penalty='l1',
+        C=1.0,
+        penalty='l2',
         solver='liblinear',
         class_weight="balanced",
         max_iter=1000,
