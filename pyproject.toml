@@ -43,6 +43,7 @@ wheel = "^0.36.2"
 twine = "^3.3.0"
 click = "^8.0.1"
 jupyterlab = "^3.1.1"
+optuna = "^2.10.1"
 
 [build-system]
 requires = ["poetry>=0.12"]
