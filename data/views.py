@@ -19,7 +19,7 @@ import pandas
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db import connection
-from django.db.models import Case, When
+from django.db.models import Case, When, QuerySet
 from django.db.models import Q
 from django.http import HttpResponse
 from django.http.response import StreamingHttpResponse
@@ -106,6 +106,7 @@ class MediaViewSet(WhooshSearchableModelViewSet):
         like_only = request.query_params.get("lo") is not None
         search_field = request.query_params.get("f", "full_text")
         connector = request.query_params.get("a", "andmaybe")
+        orderby = request.query_params.get("ord", "default")
 
         if query is not None and not connector.startswith("contains"):
             qr = parse_title_query(search_field, query, similar_words, connector)
@@ -164,7 +165,13 @@ class MediaViewSet(WhooshSearchableModelViewSet):
                     )
                 else:
                     raise Exception(f"Unknown connector {connector}")
-            queryset = Paginator(queryset, page_size).page(page_id)
+            queryset = queryset
+            if orderby == "default":
+                # Order by append time
+                queryset = Paginator(queryset, page_size).page(page_id)
+            elif orderby == "lucky":
+                # Sample from resultset
+                queryset = queryset.order_by("?")[:page_size]
         serialized_data = self.get_serializer(queryset, many=True).data
         # Rank again by RecSys model
         Event.objects.create(

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import SearchIcon from "@material-ui/icons/Search";
@@ -78,12 +78,13 @@ function SearchExplanation({query, similarWords}) {
     );
 }
 
-function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy, similarWords, likedOnly}) {
+function ContentSearchResults({searchRange, query, page, pageSize, searchAccuracy, similarWords, likedOnly, orderBy, cacheKey}) {
 
     const queryCondition = {
         "p": page,
         "n": pageSize,
-        "sw": similarWords
+        "sw": similarWords,
+        "ord": orderBy,
     };
     if (query !== "") {
         queryCondition["q"] = query;
@@ -93,7 +94,7 @@ function ContentSearchResults({searchRange, query, page, pageSize, searchAccurac
         queryCondition["lo"] = "true"
     }
     const {isLoading, error, data} = useQuery(
-        `Query(${searchRange})(${JSON.stringify(queryCondition)})`,
+        `Query(${searchRange})(${JSON.stringify(queryCondition)})/${cacheKey}`,
         () => fetch(
             createGetRequestUrl(
                 `/api/${searchRange}`,
@@ -152,6 +153,7 @@ export default function Search({name, searchRange}) {
     const classes = useStyles();
 
     const [pageId, setPageId] = useQueryString("p", "1");
+    const resetPageId = () => setPageId("1");
 
     const [searchAccuracy, setSearchAccuracy] = useQueryString("a", 'contains_or');
     const handleSearchAccuracyChange = (event) => {
@@ -180,13 +182,26 @@ export default function Search({name, searchRange}) {
     const [query, setQuery] = useQueryString("q", "");
     const [searchKeywords, setSearchKeywords] = React.useState(query);
 
+    const [cacheKey, setCacheKey] = useState(1);
+    const resetCacheKey = ()=>setCacheKey(cacheKey+1)
+
+
+    const [orderBy, setOrderBy] = useQueryString("ord", "default");
+
+    const handleChangeOrderBy = (event) => {
+        setOrderBy(event.target.value);
+        handleClickSearch();
+    };
+
     const handleSearchKeywords = (event) => {
         setSearchKeywords(event.target.value);
+        resetPageId();
     };
 
     const handleClickSearch = () => {
         setQuery(searchKeywords);
-        modifyPageId(1);
+        resetPageId();
+        resetCacheKey();
     }
 
     const handleTextKeyPress = (event) => {
@@ -211,7 +226,7 @@ export default function Search({name, searchRange}) {
                         fullWidth
                         value={searchKeywords}
                         onChange={handleSearchKeywords}
-                        onKeyPress={handleTextKeyPress}
+                        onKeyDown={handleTextKeyPress}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -303,6 +318,20 @@ export default function Search({name, searchRange}) {
                                         </Select>
                                     </FormControl>
                                 </Grid>
+                                <Grid item xs={12} md={6} lg={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="order-by-select-label">Order By</InputLabel>
+                                        <Select
+                                            labelId="order-by-select-label"
+                                            id="order-by"
+                                            value={orderBy}
+                                            onChange={handleChangeOrderBy}
+                                        >
+                                            <MenuItem value={"default"}>Default(- Create Timestamp)</MenuItem>
+                                            <MenuItem value={"lucky"}>Lucky(Random)</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
                                 <Grid item xs={12} md={12} lg={12}>
                                     <Typography>Explanation</Typography>
                                     <SearchExplanation
@@ -324,6 +353,8 @@ export default function Search({name, searchRange}) {
                 searchAccuracy={searchAccuracy}
                 similarWords={similarWords}
                 likedOnly={likedOnly}
+                orderBy={orderBy}
+                cacheKey={cacheKey}
             />
 
             <Paginator pageId={pageId} setPageId={setPageId}/>
