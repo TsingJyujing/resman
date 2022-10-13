@@ -13,6 +13,9 @@ from resman_client.ffmpeg_util import convert_video_to_h264
 
 log = logging.getLogger("Resman Client")
 
+use_qsv: bool = int(os.environ.get("USE_QSV", "0")) > 0
+force_convert: bool = int(os.environ.get("FORCE_CONVERT", "0")) > 0
+
 
 def pretty_size(size_in_bytes: int, to: str = None, bsize: int = 1024):
     """
@@ -151,17 +154,22 @@ def upload_video(
                 "upload_filenames": video_files
             }
         ))
-        if like:
-            vl.reaction = True
-        with TemporaryDirectory() as td:
-            log.debug(f"Converting files to {td}")
-            for i, video_file in enumerate(video_files):
-                filename_h264 = os.path.join(td, f"{i}.mp4")
-                convert_video_to_h264(video_file, filename_h264)
-                vl.upload_mp4_video(filename_h264, i)
-        log.info("Videos uploaded successfully, please check {}".format(
-            rc.make_url(f"videolist/{vl.object_id}")
-        ))
+        try:
+            if like:
+                vl.reaction = True
+            with TemporaryDirectory() as td:
+                log.debug(f"Converting files to {td}")
+                for i, video_file in enumerate(video_files):
+                    filename_h264 = os.path.join(td, f"{i}.mp4")
+                    convert_video_to_h264(video_file, filename_h264, use_qsv=use_qsv, force_convert=force_convert)
+                    vl.upload_mp4_video(filename_h264, i)
+            log.info("Videos uploaded successfully, please check {}".format(
+                rc.make_url(f"videolist/{vl.object_id}")
+            ))
+        except Exception as ex:
+            log.error("Upload failed caused by:", exc_info=ex)
+            vl.destroy()
+            raise ex
 
 
 @upload.command("image")
@@ -320,6 +328,7 @@ def convert_video(
     new_video_list.reaction = video_list.reaction
     try:
         log.info(f"Converting video list {vid} -> {new_video_list.object_id}")
+        # TODO download and convert in parallel, using mutex lock to ensure performance
         with TemporaryDirectory() as td:
             log.debug(f"Converting files to {td}")
             for i, video_id in enumerate(video_list_data["videos"]):
@@ -333,7 +342,7 @@ def convert_video(
                             if chunk:
                                 fp.write(chunk)
                 log.info(f"Converting to correct codec...")
-                convert_video_to_h264(downloaded_file, converted_file)
+                convert_video_to_h264(downloaded_file, converted_file, use_qsv=use_qsv, force_convert=force_convert)
                 log.info(f"Uploading...")
                 new_video_list.upload_mp4_video(converted_file, i)
     except BaseException as ex:

@@ -1,5 +1,8 @@
+import logging
 import subprocess
 from itertools import chain
+
+log = logging.getLogger(__file__)
 
 
 def get_video_codec(video_file: str) -> str:
@@ -32,7 +35,7 @@ def convert_file_codec_qsv(input_file: str, output_file: str, transcode_audio: b
     return subprocess.check_call(list(chain(
         ["ffmpeg", "-y", "-i", input_file],
         "-init_hw_device qsv=hw -filter_hw_device hw -vf "
-        "hwupload=extra_hw_frames=64,format=qsv -c:v h264_qsv "
+        "hwupload=extra_hw_frames=64,scale_qsv=format=nv12 -c:v h264_qsv "
         "-maxrate 5M -movflags +faststart -q:v 25".split(" "),
         ("-c:a aac -q:a 2" if transcode_audio else "-c:a copy").split(" "),
         [output_file]
@@ -64,9 +67,20 @@ def is_h264_qsv_available():
     )
 
 
-def convert_video_to_h264(input_file: str, output_file: str, use_qsv: bool = False):
-    if get_video_codec(input_file) != "h264":
-        func = convert_file_codec_qsv if is_h264_qsv_available() and use_qsv else convert_file_codec
+def convert_video_to_h264(input_file: str, output_file: str, use_qsv: bool = False, force_convert: bool = False):
+    """
+    Convert video to H264 format
+    :param input_file: input file
+    :param output_file: output file
+    :param use_qsv: try QSV if ffmpeg support it
+    :param force_convert: ignore source format and re-encode the file
+    :return:
+    """
+    if get_video_codec(input_file) != "h264" or force_convert:
+        h264_qsv_available = is_h264_qsv_available()
+        if h264_qsv_available:
+            log.info(f"QSV is available! use_qsv={use_qsv}")
+        func = convert_file_codec_qsv if h264_qsv_available and use_qsv else convert_file_codec
     else:
         func = copy_codec
     return func(input_file, output_file, get_audio_codec(input_file) != "aac")

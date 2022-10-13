@@ -1,8 +1,7 @@
 import json
 from abc import abstractmethod
-from collections import Callable
 from io import BytesIO
-from typing import Optional, Union, BinaryIO, List
+from typing import Optional, Union, BinaryIO, List, Callable
 from urllib.parse import urljoin
 
 import magic
