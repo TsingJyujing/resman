@@ -13,7 +13,15 @@
     </facet>
   </component>
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.ipynb_checkpoints" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/whoosh_index" />
+      <excludeFolder url="file://$MODULE_DIR$/test_data" />
+      <excludeFolder url="file://$MODULE_DIR$/resman_client.egg-info" />
+      <excludeFolder url="file://$MODULE_DIR$/recsys_model" />
+    </content>
     <orderEntry type="jdk" jdkName="Poetry (resman)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
