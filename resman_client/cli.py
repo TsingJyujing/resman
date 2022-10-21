@@ -16,6 +16,7 @@ log = logging.getLogger("Resman Client")
 use_qsv: bool = int(os.environ.get("USE_QSV", "0")) > 0
 force_convert: bool = int(os.environ.get("FORCE_CONVERT", "0")) > 0
 
+VIDEO_SUFFIX_SET = {".mp4", ".avi", ".mkv", ".wmv", ".3gp", ".mdf", ".rm", ".rmvb", ".mpg"}
 
 def pretty_size(size_in_bytes: int, to: str = None, bsize: int = 1024):
     """
@@ -125,7 +126,7 @@ def upload_video(
 ):
     path = path or click.prompt("Input path of the file(s)")
 
-    video_files = search_file_in_path(path, {".mp4", ".avi", ".mkv", ".wmv", ".3gp", ".mdf"})
+    video_files = search_file_in_path(path, VIDEO_SUFFIX_SET)
     if len(video_files) <= 0:
         raise Exception(f"Can't find file in path {path}")
     video_files = sorted(video_files)
