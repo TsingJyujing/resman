@@ -23,9 +23,6 @@ jobs:
       - name: Build image and push
         uses: docker/build-push-action@v2
         with:
-          build-args: |
-            YARN_REGISTRY=${{ secrets.NPM_CONFIG_REGISTRY }}
-            PIP_INDEX_URL=${{ secrets.PIP_INDEX_URL }}
           context: .
           file: Dockerfile
           platforms: linux/amd64

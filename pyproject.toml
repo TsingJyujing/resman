@@ -1,50 +1,48 @@
 [tool.poetry]
+authors = ["Yuan Yifan <nigel434@gmail.com>"]
+description = ""
 name = "resman"
 version = "0.1.0"
-description = ""
-authors = ["Yuan Yifan <tsingjyujing@163.com>"]
-
-[[tool.poetry.source]]
-name = "tsingjyujing"
-url = "https://nexus.tsingjyujing.com/repository/pypi-proxy/simple"
-default = true
 
 [tool.poetry.dependencies]
-python = "^3.7.1"
+chardet = "^4.0.0"
 django = "^3.1.4"
 django-cors-headers = "^3.6.0"
-minio = "^7.0.0"
-pydantic = "^1.7.3"
-mysqlclient = "^2.0.2"
 djangorestframework = "^3.12.2"
-tsingspider = "^1.4.2"
-tqdm = "^4.54.1"
-requests = "^2.25.1"
-gensim = "^3.8.3"
-jieba = "^0.42.1"
-zhconv = "^1.4.1"
-chardet = "^4.0.0"
-python-magic = "^0.4.18"
-whoosh = "^2.7.4"
 drf-yasg = "^1.20.0"
-psycopg2 = "^2.8.6"
 ffmpeg-python = "^0.2.0"
-scikit-learn = "^0.24.2"
+gensim = "^3.8.3"
+gunicorn = "^20.1.0"
+jieba = "^0.42.1"
+minio = "^7.0.0"
+mysqlclient = "^2.0.2"
 pandas = "^1.3.1"
-word2vec = "^0.11.1"
+psycopg2 = "^2.8.6"
+pydantic = "^1.7.3"
+python = ">=3.8.1,<3.11"
+python-magic = "^0.4.18"
 redis = "^4.1.0"
+requests = "^2.25.1"
+scikit-learn = "^0.24.2"
+tqdm = "^4.54.1"
+tsingspider = "^1.4.2"
+whoosh = "^2.7.4"
+word2vec = "^0.11.1"
+zhconv = "^1.4.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+click = "^8.0.1"
+jupyterlab = "^3.1.1"
+optuna = "^2.10.1"
 pymongo = "^3.11.2"
 pytest = "^6.2.1"
 requests-toolbelt = "^0.9.1"
 setuptools = "^53.0.0"
-wheel = "^0.36.2"
 twine = "^3.3.0"
-click = "^8.0.1"
-jupyterlab = "^3.1.1"
-optuna = "^2.10.1"
+wheel = "^0.36.2"
+flake8 = "^6.0.0"
 
 [build-system]
-requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+requires = ["poetry>=0.12"]
