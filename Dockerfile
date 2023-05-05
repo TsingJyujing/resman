@@ -1,7 +1,4 @@
-ARG PIP_INDEX_URL
-
 FROM node:15 as BUILD_FRONTEND
-ARG YARN_REGISTRY
 WORKDIR /app
 COPY frontend/yarn.lock frontend/package.json /app/
 RUN yarn
@@ -23,11 +20,6 @@ FROM python:3.8 as BACKEND
 WORKDIR /app
 
 CMD ["bash", "start_server.sh"]
-RUN mkdir nlp_resources && cd nlp_resources && \
-    wget https://nexus.tsingjyujing.com/repository/raw/nlp_resources/stopwords.txt && \
-    wget https://nexus.tsingjyujing.com/repository/raw/nlp_resources/title.wordvectors && \
-    wget https://nexus.tsingjyujing.com/repository/raw/nlp_resources/user_dict.txt && \
-    cd /app
 COPY --from=POETRY_EXPORT /app/requirements.txt /app/
 RUN pip install -r requirements.txt
 ENV DEBUG=0
