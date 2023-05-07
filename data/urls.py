@@ -2,17 +2,23 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from data.views import (
-    ImageListViewSet, ImageListUserReactionView,
-    VideoListViewSet, VideoListUserReactionView,
-    NovelViewSet, NovelUserReactionView,
-    UploadS3VideoView,
-    UploadS3ImageView,
-    GetVideoStream,
-    GetNovelPage,
-    GetImageDataViewWithCache,
     ExpandSearchByW2V,
+    GetImageDataViewWithCache,
+    GetNovelPage,
+    GetVideoStream,
+    ImageListTagOperation,
+    ImageListUserReactionView,
+    ImageListViewSet,
+    NovelTagOperation,
+    NovelUserReactionView,
+    NovelViewSet,
     RecommendImageList,
     StorageReport,
+    UploadS3ImageView,
+    UploadS3VideoView,
+    VideoListTagOperation,
+    VideoListUserReactionView,
+    VideoListViewSet,
 )
 from resman.settings import DEBUG
 
@@ -22,6 +28,9 @@ router.register(r"videolist", viewset=VideoListViewSet, basename="videolist")
 router.register(r"novel", viewset=NovelViewSet, basename="novel")
 urlpatterns = [
     path("auth", include("rest_framework.urls")),
+    path("imagelist/<int:thread_id>/tags/<str:tag>", ImageListTagOperation.as_view()),
+    path("videolist/<int:thread_id>/tags/<str:tag>", VideoListTagOperation.as_view()),
+    path("novel/<int:thread_id>/tags/<str:tag>", NovelTagOperation.as_view()),
     path("imagelist/<int:thread_id>/reaction", ImageListUserReactionView.as_view()),
     path("videolist/<int:thread_id>/reaction", VideoListUserReactionView.as_view()),
     path("novel/<int:thread_id>/reaction", NovelUserReactionView.as_view()),

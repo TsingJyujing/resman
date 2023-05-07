@@ -7,6 +7,7 @@ from .models import (
     S3Image,
     S3Video,
     Event,
+    Tag,
 )
 
 # Register your models here.
@@ -17,3 +18,4 @@ admin.site.register(ImageList)
 admin.site.register(S3Image)
 admin.site.register(S3Video)
 admin.site.register(Event)
+admin.site.register(Tag)

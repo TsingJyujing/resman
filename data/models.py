@@ -6,12 +6,17 @@ from django.db import models
 from minio.deleteobjects import DeleteObject
 from tqdm import tqdm
 from whoosh import writing
-from whoosh.fields import Schema, ID, TEXT
+from whoosh.fields import ID, TEXT, Schema
 
 from resman.settings import DEFAULT_S3_BUCKET
-from utils.nlp.word_cut import get_analyzer, clean_up_chinese_str
-from utils.search_engine import ISearchable, WHOOSH_SEARCH_ENGINE
-from utils.storage import create_default_minio_client, read_range, read_range_stream, get_size
+from utils.nlp.word_cut import clean_up_chinese_str, get_analyzer
+from utils.search_engine import WHOOSH_SEARCH_ENGINE, ISearchable
+from utils.storage import (
+    create_default_minio_client,
+    get_size,
+    read_range,
+    read_range_stream,
+)
 
 log = logging.getLogger(__file__)
 
@@ -20,16 +25,24 @@ class BaseReaction(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     positive_reaction = models.BooleanField()
-    owner = models.ForeignKey(
-        "auth.User", on_delete=models.CASCADE
-    )
+    owner = models.ForeignKey("auth.User", on_delete=models.CASCADE)
 
     class Meta:
         abstract = True
-        indexes = [
-            models.Index(fields=['owner', 'thread'])
+        indexes = [models.Index(fields=["owner", "thread"])]
+        unique_together = ("owner", "thread")
+
+
+class Tag(models.Model):
+    id = models.AutoField(primary_key=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    text = models.CharField(max_length=100)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["text"], name="unique_tag_text"),
         ]
-        unique_together = ('owner', 'thread')
 
 
 class ReactionToImageList(BaseReaction):
@@ -40,11 +53,12 @@ class ReactionToImageList(BaseReaction):
         Dislike: False
     """
 
-    thread = models.ForeignKey(
-        "ImageList", on_delete=models.CASCADE
-    )
+    id = models.AutoField(primary_key=True)
 
-    class Meta(BaseReaction.Meta): pass
+    thread = models.ForeignKey("ImageList", on_delete=models.CASCADE)
+
+    class Meta(BaseReaction.Meta):
+        pass
 
 
 class ReactionToVideoList(BaseReaction):
@@ -55,11 +69,12 @@ class ReactionToVideoList(BaseReaction):
         Dislike: False
     """
 
-    thread = models.ForeignKey(
-        "VideoList", on_delete=models.CASCADE
-    )
+    id = models.AutoField(primary_key=True)
 
-    class Meta(BaseReaction.Meta): pass
+    thread = models.ForeignKey("VideoList", on_delete=models.CASCADE)
+
+    class Meta(BaseReaction.Meta):
+        pass
 
 
 class ReactionToNovel(BaseReaction):
@@ -70,14 +85,15 @@ class ReactionToNovel(BaseReaction):
         Dislike: False
     """
 
-    thread = models.ForeignKey(
-        "Novel", on_delete=models.CASCADE
-    )
+    id = models.AutoField(primary_key=True)
+    thread = models.ForeignKey("Novel", on_delete=models.CASCADE)
 
-    class Meta(BaseReaction.Meta): pass
+    class Meta(BaseReaction.Meta):
+        pass
 
 
 class ImageList(models.Model, ISearchable):
+    id = models.AutoField(primary_key=True)
 
     @classmethod
     def get_schema(cls) -> Schema:
@@ -103,11 +119,8 @@ class ImageList(models.Model, ISearchable):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     data = models.TextField(default="{}")
-    owner = models.ForeignKey(
-        "auth.User",
-        on_delete=models.SET_NULL,
-        null=True
-    )
+    owner = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True)
+    tags = models.ManyToManyField(Tag)
 
 
 class BaseImage(models.Model):
@@ -118,13 +131,12 @@ class BaseImage(models.Model):
     content_type = models.CharField(max_length=60, default="image/jpeg")
 
     @abstractmethod
-    def get_image_data(self) -> bytes: pass
+    def get_image_data(self) -> bytes:
+        pass
 
     class Meta:
         abstract = True
-        indexes = [
-            models.Index(fields=['thread'])
-        ]
+        indexes = [models.Index(fields=["thread"])]
         ordering = ["order", "id"]
 
 
@@ -135,7 +147,9 @@ class BaseS3Object(models.Model):
     def get_size(self) -> int:
         return get_size(self.bucket, self.object_name)
 
-    def read_range_stream(self, start_byte: int = 0, end_byte: int = None) -> Iterator[bytes]:
+    def read_range_stream(
+        self, start_byte: int = 0, end_byte: int = None
+    ) -> Iterator[bytes]:
         return read_range_stream(self.bucket, self.object_name, start_byte, end_byte)
 
     def read_range(self, start_byte: int = 0, end_byte: int = None) -> bytes:
@@ -150,8 +164,7 @@ class BaseS3Object(models.Model):
         ]
         log.info(f"Removing {len(objects_to_remove)} items in S3 storage")
         errs = create_default_minio_client().remove_objects(
-            DEFAULT_S3_BUCKET,
-            objects_to_remove
+            DEFAULT_S3_BUCKET, objects_to_remove
         )
         for err in errs:
             log.warning(f"Error while removing object: {err}")
@@ -165,6 +178,8 @@ class S3Image(BaseImage, BaseS3Object):
     """
     Get image from default S3 bucket
     """
+
+    id = models.AutoField(primary_key=True)
     bucket = models.CharField(max_length=255)
     object_name = models.CharField(max_length=255)
 
@@ -177,6 +192,7 @@ class S3Image(BaseImage, BaseS3Object):
 
 
 class VideoList(models.Model, ISearchable):
+    id = models.AutoField(primary_key=True)
 
     @classmethod
     def get_schema(cls) -> Schema:
@@ -201,15 +217,12 @@ class VideoList(models.Model, ISearchable):
     description = models.TextField(blank=True)
 
     data = models.TextField(default="{}")
-
-    owner = models.ForeignKey(
-        "auth.User",
-        on_delete=models.SET_NULL,
-        null=True
-    )
+    owner = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True)
+    tags = models.ManyToManyField(Tag)
 
 
 class S3Video(BaseS3Object):
+    id = models.AutoField(primary_key=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     order = models.IntegerField(default=0)
@@ -220,13 +233,12 @@ class S3Video(BaseS3Object):
         BaseS3Object.clean_objects(S3Video.objects.filter(thread=None))
 
     class Meta:
-        indexes = [
-            models.Index(fields=['thread'])
-        ]
+        indexes = [models.Index(fields=["thread"])]
         ordering = ["order", "id"]
 
 
 class Novel(BaseS3Object, ISearchable):
+    id = models.AutoField(primary_key=True)
 
     @classmethod
     def get_schema(cls) -> Schema:
@@ -244,30 +256,25 @@ class Novel(BaseS3Object, ISearchable):
         return {
             "id": str(self.id),
             "title": clean_up_chinese_str(self.title),
-            "full_text": clean_up_chinese_str(self.read_range().decode())
+            "full_text": clean_up_chinese_str(self.read_range().decode()),
         }
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=255)
     data = models.TextField(default="{}")
-    owner = models.ForeignKey(
-        "auth.User",
-        on_delete=models.SET_NULL,
-        null=True
-    )
+    owner = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True)
+    tags = models.ManyToManyField(Tag)
 
 
 class Event(models.Model):
     """
     For more details, see README.md
     """
+
+    id = models.AutoField(primary_key=True)
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(
-        "auth.User",
-        on_delete=models.SET_NULL,
-        null=True
-    )
+    user = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True)
     # Event Types: impression/page_view/fetch_media/...
     event_type = models.CharField(max_length=100)
     # Media Type: Novel/VideoList/ImageList
@@ -276,8 +283,8 @@ class Event(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['created']),
-            models.Index(fields=['user', 'event_type', 'media_type']),
+            models.Index(fields=["created"]),
+            models.Index(fields=["user", "event_type", "media_type"]),
         ]
 
 

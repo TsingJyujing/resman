@@ -3,7 +3,7 @@ import json
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from data.models import ImageList, VideoList, Novel
+from data.models import ImageList, Novel, Tag, VideoList
 
 
 class JSONDataSerializer(ModelSerializer):
@@ -11,6 +11,7 @@ class JSONDataSerializer(ModelSerializer):
     The field save as Text but actually JSON
     For saving JSON data compatible with SQLite3
     """
+
     data = serializers.JSONField(allow_null=True, default={})
 
     # noinspection PyMethodMayBeStatic
@@ -24,10 +25,18 @@ class JSONDataSerializer(ModelSerializer):
         return data
 
 
+class TagSerializer(ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["id", "text"]
+
+
 class ImageListSerializer(JSONDataSerializer):
     """
     Serializer for ImageList
     """
+
+    tags = TagSerializer(read_only=True, many=True)
 
     class Meta:
         model = ImageList
@@ -38,11 +47,14 @@ class ImageListSerializer(JSONDataSerializer):
             "title",
             "description",
             "owner",
-            "data"
+            "data",
+            "tags",
         ]
 
 
 class VideoListSerializer(JSONDataSerializer):
+    tags = TagSerializer(read_only=True, many=True)
+
     class Meta:
         model = VideoList
         fields = [
@@ -52,11 +64,14 @@ class VideoListSerializer(JSONDataSerializer):
             "title",
             "description",
             "owner",
-            "data"
+            "data",
+            "tags",
         ]
 
 
 class NovelSerializer(JSONDataSerializer):
+    tags = TagSerializer(read_only=True, many=True)
+
     class Meta:
         model = Novel
         fields = [
@@ -65,5 +80,6 @@ class NovelSerializer(JSONDataSerializer):
             "updated",
             "title",
             "owner",
-            "data"
+            "data",
+            "tags",
         ]

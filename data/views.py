@@ -11,7 +11,7 @@ from functools import lru_cache, reduce
 from io import BytesIO
 from math import ceil
 from textwrap import dedent
-from typing import Sequence, Tuple, List
+from typing import List, Sequence, Tuple
 from uuid import uuid1
 
 import magic
@@ -19,8 +19,7 @@ import pandas
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db import connection
-from django.db.models import Case, When, QuerySet
-from django.db.models import Q
+from django.db.models import Case, Q, QuerySet, When
 from django.http import HttpResponse
 from django.http.response import StreamingHttpResponse
 from rest_framework import status
@@ -33,21 +32,39 @@ from whoosh.fields import Schema
 from whoosh.query import Term
 from whoosh.query.compound import Or
 
-from data.models import ImageList, ReactionToImageList, S3Image, VideoList, S3Video, ReactionToVideoList, Novel, \
-    ReactionToNovel, Event
-from data.serializers import ImageListSerializer, VideoListSerializer, NovelSerializer
-from resman.settings import DEFAULT_S3_BUCKET, FRONTEND_STATICFILES_DIR, RECSYS_MODEL_PATH
+from data.models import (
+    Event,
+    ImageList,
+    Novel,
+    ReactionToImageList,
+    ReactionToNovel,
+    ReactionToVideoList,
+    S3Image,
+    S3Video,
+    Tag,
+    VideoList,
+)
+from data.serializers import ImageListSerializer, NovelSerializer, VideoListSerializer
+from resman.settings import (
+    DEFAULT_S3_BUCKET,
+    FRONTEND_STATICFILES_DIR,
+    RECSYS_MODEL_PATH,
+)
 from utils.nlp.w2v_search import title_expand
-from utils.recsys.lr_recsys import train_model, get_aggregated_logs
+from utils.recsys.lr_recsys import get_aggregated_logs, train_model
 from utils.search_engine import WhooshSearchableModelViewSet, parse_title_query
-from utils.storage import create_default_minio_client, get_default_minio_client, redis_cache_get, redis_cache_set
+from utils.storage import (
+    create_default_minio_client,
+    get_default_minio_client,
+    redis_cache_get,
+    redis_cache_set,
+)
 
 log = logging.getLogger(__file__)
 
 
 # noinspection PyMethodOverriding
 class MediaViewSet(WhooshSearchableModelViewSet):
-
     @abstractmethod
     def get_searchable_class(self):
         pass
@@ -65,28 +82,33 @@ class MediaViewSet(WhooshSearchableModelViewSet):
     def serialize_with_reaction(self, instance, user):
         serializer = self.get_serializer(instance)
         data = serializer.data
-        reaction = self.get_reaction_class().objects.filter(
-            owner=user,
-            thread=instance
-        ).first()
-        data["positive_reaction"] = None if reaction is None else reaction.positive_reaction
-        data["like_count"] = self.get_reaction_class().objects.filter(
-            owner=user,
-            thread=instance,
-            positive_reaction=True
-        ).count()
-        data["dislike_count"] = self.get_reaction_class().objects.filter(
-            owner=user,
-            thread=instance,
-            positive_reaction=False
-        ).count()
+        reaction = (
+            self.get_reaction_class()
+            .objects.filter(owner=user, thread=instance)
+            .first()
+        )
+        data["positive_reaction"] = (
+            None if reaction is None else reaction.positive_reaction
+        )
+        data["like_count"] = (
+            self.get_reaction_class()
+            .objects.filter(owner=user, thread=instance, positive_reaction=True)
+            .count()
+        )
+        data["dislike_count"] = (
+            self.get_reaction_class()
+            .objects.filter(owner=user, thread=instance, positive_reaction=False)
+            .count()
+        )
         Event.objects.create(
             user=user,
             event_type="page_view",
             media_type=self.get_searchable_class().__name__,
-            data=json.dumps(dict(
-                id=data["id"],
-            ))
+            data=json.dumps(
+                dict(
+                    id=data["id"],
+                )
+            ),
         )
         return data
 
@@ -112,33 +134,37 @@ class MediaViewSet(WhooshSearchableModelViewSet):
             qr = parse_title_query(search_field, query, similar_words, connector)
             liked_matcher = None
             if like_only:
-                liked_matcher = Or([
-                    Term("id", str(reaction.thread.id))
-                    for reaction in self.get_reaction_class().objects.filter(
-                        positive_reaction=True
-                    ).filter(
-                        owner=request.user
-                    )
-                ])
+                liked_matcher = Or(
+                    [
+                        Term("id", str(reaction.thread.id))
+                        for reaction in self.get_reaction_class()
+                        .objects.filter(positive_reaction=True)
+                        .filter(owner=request.user)
+                    ]
+                )
 
             with self.get_searcher() as s:
                 indexes: Sequence[int] = [
-                                             int(hit["id"])
-                                             for hit in s.search(qr, filter=liked_matcher, limit=page_id * page_size)
-                                         ][(page_id - 1) * page_size:]
+                    int(hit["id"])
+                    for hit in s.search(
+                        qr, filter=liked_matcher, limit=page_id * page_size
+                    )
+                ][(page_id - 1) * page_size :]
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(indexes)])
-            queryset = self.get_searchable_class().objects.filter(pk__in=indexes).order_by(preserved)
+            queryset = (
+                self.get_searchable_class()
+                .objects.filter(pk__in=indexes)
+                .order_by(preserved)
+            )
         else:
             queryset = self.filter_queryset(self.get_queryset())
             if like_only:
                 queryset = queryset.filter(
                     id__in=list(
                         reaction.thread.id
-                        for reaction in self.get_reaction_class().objects.filter(
-                            positive_reaction=True
-                        ).filter(
-                            owner=request.user
-                        )
+                        for reaction in self.get_reaction_class()
+                        .objects.filter(positive_reaction=True)
+                        .filter(owner=request.user)
                     )
                 )
             qs = []
@@ -156,13 +182,9 @@ class MediaViewSet(WhooshSearchableModelViewSet):
 
             if len(qs) > 0:
                 if connector == "contains_or":
-                    queryset = queryset.filter(
-                        reduce(lambda q1, q2: q1 | q2, qs)
-                    )
+                    queryset = queryset.filter(reduce(lambda q1, q2: q1 | q2, qs))
                 elif connector == "contains_and":
-                    queryset = queryset.filter(
-                        reduce(lambda q1, q2: q1 & q2, qs)
-                    )
+                    queryset = queryset.filter(reduce(lambda q1, q2: q1 & q2, qs))
                 else:
                     raise Exception(f"Unknown connector {connector}")
             queryset = queryset
@@ -178,16 +200,18 @@ class MediaViewSet(WhooshSearchableModelViewSet):
             user=request.user,
             event_type="impression",
             media_type=self.get_searchable_class().__name__,
-            data=json.dumps(dict(
-                query=query,
-                page_size=page_size,
-                page_id=page_id,
-                similar_words=similar_words,
-                like_only=like_only,
-                search_field=search_field,
-                connector=connector,
-                result=[row["id"] for row in serialized_data],
-            ))
+            data=json.dumps(
+                dict(
+                    query=query,
+                    page_size=page_size,
+                    page_id=page_id,
+                    similar_words=similar_words,
+                    like_only=like_only,
+                    search_field=search_field,
+                    connector=connector,
+                    result=[row["id"] for row in serialized_data],
+                )
+            ),
         )
         return Response(serialized_data)
 
@@ -265,15 +289,17 @@ class NovelViewSet(MediaViewSet):
         object_name = f"novel/{uuid1()}.txt"
         with BytesIO(file_data) as fp:
             mc.put_object(
-                DEFAULT_S3_BUCKET,
-                object_name,
-                fp, len(file_data), "plain/text"
+                DEFAULT_S3_BUCKET, object_name, fp, len(file_data), "plain/text"
             )
-        serializer.save(owner=self.request.user, bucket=DEFAULT_S3_BUCKET, object_name=object_name)
+        serializer.save(
+            owner=self.request.user, bucket=DEFAULT_S3_BUCKET, object_name=object_name
+        )
         self.search_engine_create(serializer.instance)
 
     def retrieve(self, request, *args, **kwargs):
-        return Response(self.serialize_with_reaction(self.get_object(), self.request.user))
+        return Response(
+            self.serialize_with_reaction(self.get_object(), self.request.user)
+        )
 
     def destroy(self, request, pk=None):
         novel: Novel = Novel.objects.get(id=pk)
@@ -283,7 +309,6 @@ class NovelViewSet(MediaViewSet):
 
 
 class BaseUserReactionView(APIView):
-
     @abstractmethod
     def get_object_class(self):
         pass
@@ -294,12 +319,18 @@ class BaseUserReactionView(APIView):
 
     def post(self, request: Request, thread_id: int):
         positive_reaction = self.request.data["positive_reaction"]
-        reaction_of_thread = self.get_reaction_class().objects.filter(
-            owner=self.request.user,
-            thread=self.get_object_class().objects.get(id=thread_id)
-        ).first()
+        reaction_of_thread = (
+            self.get_reaction_class()
+            .objects.filter(
+                owner=self.request.user,
+                thread=self.get_object_class().objects.get(id=thread_id),
+            )
+            .first()
+        )
 
-        original_status = None if reaction_of_thread is None else reaction_of_thread.positive_reactio
+        original_status = (
+            None if reaction_of_thread is None else reaction_of_thread.positive_reactio
+        )
 
         if reaction_of_thread is not None:
             if positive_reaction is not None:
@@ -311,33 +342,43 @@ class BaseUserReactionView(APIView):
             self.get_reaction_class().objects.create(
                 owner=self.request.user,
                 thread=self.get_object_class().objects.get(id=thread_id),
-                positive_reaction=positive_reaction
+                positive_reaction=positive_reaction,
             )
         Event.objects.create(
             user=request.user,
             event_type="reaction",
             media_type=self.get_object_class().__name__,
-            data=json.dumps(dict(
-                id=thread_id,
-                original_status=original_status,
-                command=positive_reaction,
-            ))
+            data=json.dumps(
+                dict(
+                    id=thread_id,
+                    original_status=original_status,
+                    command=positive_reaction,
+                )
+            ),
         )
-        return Response({
-            "positive_reaction": positive_reaction,
-        })
+        return Response(
+            {
+                "positive_reaction": positive_reaction,
+            }
+        )
 
     def get(self, request: Request, thread_id: int):
         positive_reaction = None
-        rit = self.get_reaction_class().objects.filter(
-            owner=self.request.user,
-            thread=self.get_object_class().objects.get(id=thread_id),
-        ).first()
+        rit = (
+            self.get_reaction_class()
+            .objects.filter(
+                owner=self.request.user,
+                thread=self.get_object_class().objects.get(id=thread_id),
+            )
+            .first()
+        )
         if rit is not None:
             positive_reaction = rit.positive_reaction
-        return Response({
-            "positive_reaction": positive_reaction,
-        })
+        return Response(
+            {
+                "positive_reaction": positive_reaction,
+            }
+        )
 
 
 class ImageListUserReactionView(BaseUserReactionView):
@@ -364,6 +405,41 @@ class NovelUserReactionView(BaseUserReactionView):
         return ReactionToNovel
 
 
+class BaseTagOperation(APIView):
+    @abstractmethod
+    def get_object_class(self):
+        pass
+
+    def put(self, request: Request, thread_id: int, tag: str):
+        tag_object, _ = Tag.objects.get_or_create(text=tag, defaults={"text": tag})
+        thread = self.get_object_class().objects.get(id=thread_id)
+        thread.tags.add(tag_object)
+        return Response(status=204)
+
+    def delete(self, request: Request, thread_id: int, tag: str):
+        thread = self.get_object_class().objects.get(id=thread_id)
+        tags = thread.tags.filter(text=tag)
+        if tags.count() <= 0:
+            return Response(status=404)
+        thread.tags.remove(*tags)
+        return Response(status=204)
+
+
+class ImageListTagOperation(BaseTagOperation):
+    def get_object_class(self):
+        return ImageList
+
+
+class VideoListTagOperation(BaseTagOperation):
+    def get_object_class(self):
+        return VideoList
+
+
+class NovelTagOperation(BaseTagOperation):
+    def get_object_class(self):
+        return Novel
+
+
 class UploadS3ImageView(APIView):
     def post(self, request: Request):
         data = request.data
@@ -380,24 +456,27 @@ class UploadS3ImageView(APIView):
                 if bucket == DEFAULT_S3_BUCKET:
                     raise KeyError(f"Can't use default bucket {DEFAULT_S3_BUCKET}")
                 object_name_lower = object_name.lower()
-                if object_name_lower.endswith("jpg") or object_name_lower.endswith("jpeg"):
+                if object_name_lower.endswith("jpg") or object_name_lower.endswith(
+                    "jpeg"
+                ):
                     content_type = "image/jpeg"
                 elif object_name_lower.endswith("png"):
                     content_type = "image/png"
                 elif object_name_lower.endswith("gif"):
                     content_type = "image/gif"
                 else:
-                    log.warning(f"Can't guess content type from {bucket}:{object_name}, detecting...")
+                    log.warning(
+                        f"Can't guess content type from {bucket}:{object_name}, detecting..."
+                    )
                     content_type = magic.from_buffer(
-                        mc.get_object(bucket, object_name).data,
-                        mime=True
+                        mc.get_object(bucket, object_name).data, mime=True
                     )
                 im_obj = S3Image.objects.create(
                     bucket=bucket,
                     object_name=object_name,
                     thread=image_thread,
                     order=order,
-                    content_type=content_type
+                    content_type=content_type,
                 )
                 image_id_list.append(im_obj.id)
         else:
@@ -405,16 +484,18 @@ class UploadS3ImageView(APIView):
                 object_name = f"image/{uuid1().hex}"
                 file_data = fp.read()
                 mc.put_object(
-                    DEFAULT_S3_BUCKET, object_name,
-                    BytesIO(file_data), len(file_data),
-                    content_type=fp.content_type
+                    DEFAULT_S3_BUCKET,
+                    object_name,
+                    BytesIO(file_data),
+                    len(file_data),
+                    content_type=fp.content_type,
                 )
                 im_obj = S3Image.objects.create(
                     bucket=DEFAULT_S3_BUCKET,
                     object_name=object_name,
                     thread=image_thread,
                     order=int(fn) if fn.isdigit() else 0,
-                    content_type=fp.content_type
+                    content_type=fp.content_type,
                 )
                 image_id_list.append(im_obj.id)
         log.info(f"Request finished in {int((time.time() - start_time) * 1000)} ms")
@@ -423,16 +504,16 @@ class UploadS3ImageView(APIView):
 
 class UploadS3VideoView(APIView):
     def post(self, request: Request):
-        video_list = VideoList.objects.get(
-            id=int(request.data["video_list_id"])
-        )
+        video_list = VideoList.objects.get(id=int(request.data["video_list_id"]))
         s3_video_created = []
         if "bucket" in request.data and "object_name" in request.data:
-            s3_video_created.append(S3Video.objects.create(
-                thread=video_list,
-                bucket=request.data["bucket"],
-                object_name=request.data["object_name"]
-            ))
+            s3_video_created.append(
+                S3Video.objects.create(
+                    thread=video_list,
+                    bucket=request.data["bucket"],
+                    object_name=request.data["object_name"],
+                )
+            )
         else:
             mc = get_default_minio_client()
             for fn, fp in request.FILES.items():
@@ -442,15 +523,18 @@ class UploadS3VideoView(APIView):
                 mc.put_object(
                     DEFAULT_S3_BUCKET,
                     object_name,
-                    fp, fp.size,
-                    content_type=fp.content_type or "video/mp4"
+                    fp,
+                    fp.size,
+                    content_type=fp.content_type or "video/mp4",
                 )
 
-                s3_video_created.append(S3Video.objects.create(
-                    thread=video_list,
-                    bucket=DEFAULT_S3_BUCKET,
-                    object_name=object_name
-                ))
+                s3_video_created.append(
+                    S3Video.objects.create(
+                        thread=video_list,
+                        bucket=DEFAULT_S3_BUCKET,
+                        object_name=object_name,
+                    )
+                )
 
         return Response({"video_id_list": [v.id for v in s3_video_created]})
 
@@ -472,9 +556,11 @@ class GetImageDataView(APIView):
                 user=request.user,
                 event_type="fetch_media",
                 media_type="ImageList",
-                data=json.dumps(dict(
-                    id=image_id,
-                ))
+                data=json.dumps(
+                    dict(
+                        id=image_id,
+                    )
+                ),
             )
 
             def _wrapper():
@@ -483,7 +569,7 @@ class GetImageDataView(APIView):
 
             return StreamingHttpResponse(
                 streaming_content=_wrapper(),
-                content_type=file_object.headers.get("Content-Type", im.content_type)
+                content_type=file_object.headers.get("Content-Type", im.content_type),
             )
         except S3Image.DoesNotExist:
             resp = HttpResponse(
@@ -525,13 +611,14 @@ class GetImageDataViewWithCache(APIView):
                 user=request.user,
                 event_type="fetch_media",
                 media_type="ImageList",
-                data=json.dumps(dict(
-                    id=image_id,
-                ))
+                data=json.dumps(
+                    dict(
+                        id=image_id,
+                    )
+                ),
             )
             return HttpResponse(
-                content=data,
-                content_type=content_type or im.content_type
+                content=data, content_type=content_type or im.content_type
             )
         except S3Image.DoesNotExist:
             resp = HttpResponse(
@@ -543,7 +630,7 @@ class GetImageDataViewWithCache(APIView):
 
 
 class GetVideoStream(APIView):
-    range_re = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+    range_re = re.compile(r"bytes\s*=\s*(\d+)\s*-\s*(\d*)", re.I)
 
     def get(self, request: Request, video_id: int):
         s3_video: S3Video = S3Video.objects.get(id=video_id)
@@ -552,60 +639,64 @@ class GetVideoStream(APIView):
             content_type = "video/mp4"
         minio_client = get_default_minio_client()
 
-        range_match = self.range_re.match(
-            request.META.get('HTTP_RANGE', '').strip()
-        )
+        range_match = self.range_re.match(request.META.get("HTTP_RANGE", "").strip())
 
         if range_match:
             first_byte, last_byte = range_match.groups()
             first_byte = int(first_byte) if first_byte else 0
-            last_byte = int(last_byte) if last_byte else minio_client.stat_object(
-                s3_video.bucket,
-                s3_video.object_name,
-            ).size - 1
+            last_byte = (
+                int(last_byte)
+                if last_byte
+                else minio_client.stat_object(
+                    s3_video.bucket,
+                    s3_video.object_name,
+                ).size
+                - 1
+            )
             length = last_byte - first_byte + 1
 
             obj = minio_client.get_object(
-                s3_video.bucket,
-                s3_video.object_name,
-                offset=first_byte,
-                length=length
+                s3_video.bucket, s3_video.object_name, offset=first_byte, length=length
             )
-            content_length = obj.getheader('Content-Length')
-            content_range = obj.getheader('Content-Range')
+            content_length = obj.getheader("Content-Length")
+            content_range = obj.getheader("Content-Range")
 
             Event.objects.create(
                 user=request.user,
                 event_type="fetch_media",
                 media_type="VideoList",
-                data=json.dumps(dict(
-                    id=video_id,
-                    content_length=content_length,
-                    content_range=content_range,
-                ))
+                data=json.dumps(
+                    dict(
+                        id=video_id,
+                        content_length=content_length,
+                        content_range=content_range,
+                    )
+                ),
             )
 
             def _wrapper():
                 yield from obj.stream()
                 obj.close()
 
-            resp = StreamingHttpResponse(_wrapper(), status=206, content_type=content_type)
-            resp['Content-Length'] = content_length
-            resp['Content-Range'] = content_range
+            resp = StreamingHttpResponse(
+                _wrapper(), status=206, content_type=content_type
+            )
+            resp["Content-Length"] = content_length
+            resp["Content-Range"] = content_range
         else:
             obj = minio_client.get_object(
                 s3_video.bucket,
                 s3_video.object_name,
             )
-            content_length = obj.getheader('Content-Length')
+            content_length = obj.getheader("Content-Length")
 
             def _wrapper():
                 yield from obj.stream()
                 obj.close()
 
             resp = StreamingHttpResponse(_wrapper(), content_type=content_type)
-            resp['Content-Length'] = content_length
-        resp['Accept-Ranges'] = 'bytes'
+            resp["Content-Length"] = content_length
+        resp["Accept-Ranges"] = "bytes"
         return resp
 
 
@@ -619,44 +710,46 @@ class GetNovelPage(APIView):
             raise Exception(f"Can't reach that page {page_id}")
 
         text_decoded = novel.read_range(
-            (page_id - 1) * page_size,
-            page_id * page_size + 16
+            (page_id - 1) * page_size, page_id * page_size + 16
         ).decode(errors="ignore")
         Event.objects.create(
             user=request.user,
             event_type="fetch_media",
             media_type="Novel",
-            data=json.dumps(dict(
-                id=novel_id,
-                page_size=page_size,
-                page_id=page_id,
-                page_count=page_count,
-                character_count=len(text_decoded),
-            ))
+            data=json.dumps(
+                dict(
+                    id=novel_id,
+                    page_size=page_size,
+                    page_id=page_id,
+                    page_count=page_count,
+                    character_count=len(text_decoded),
+                )
+            ),
         )
-        return Response({
-            "text": text_decoded,
-            "page_count": page_count
-        })
+        return Response({"text": text_decoded, "page_count": page_count})
 
 
 class ExpandSearchByW2V(APIView):
     def get(self, request: Request):
         keywords = re.split(r"\s+", request.query_params.get("q") or "")
         similar_words = int(request.query_params.get("sw"))
-        return Response({
-            keyword: [
-                {"word": w, "score": s}
-                for w, s in title_expand(keyword, similar_words)
-            ]
-            for keyword in keywords
-        })
+        return Response(
+            {
+                keyword: [
+                    {"word": w, "score": s}
+                    for w, s in title_expand(keyword, similar_words)
+                ]
+                for keyword in keywords
+            }
+        )
 
 
 class RecommendationRecord:
     def __init__(self, recommendation, expire: int = 3600 * 2):
         self.recommendation = recommendation
-        self.expire = (datetime.datetime.now() + datetime.timedelta(seconds=expire)).timestamp()
+        self.expire = (
+            datetime.datetime.now() + datetime.timedelta(seconds=expire)
+        ).timestamp()
 
     def is_expire(self):
         return datetime.datetime.now().timestamp() > self.expire
@@ -676,10 +769,9 @@ def get_model(user: User):
         log.info("Falied to load model caused by:", exc_info=ex)
         model = train_model(user)
         with open(model_path, "wb") as fp:
-            pickle.dump({
-                "expire_timestamp": time.time() + 24 * 3600,
-                "model": model
-            }, fp)
+            pickle.dump(
+                {"expire_timestamp": time.time() + 24 * 3600, "model": model}, fp
+            )
         return model
 
 
@@ -691,14 +783,22 @@ def get_recommendations(user: User) -> List[int]:
         log.info("Recommendation not found or expired, generating...")
         model = get_model(user)
         block_thread_ids = {
-            tid for tid, tinfo in get_aggregated_logs(user).items()
-            if tinfo.is_like is not None or tinfo.click_count > 1 or tinfo.impression_count > 3
+            tid
+            for tid, tinfo in get_aggregated_logs(user).items()
+            if tinfo.is_like is not None
+            or tinfo.click_count > 1
+            or tinfo.impression_count > 3
         }
         candidates = list(ImageList.objects.all().values_list("title", "id"))
-        scored_id = sorted(list(zip(
-            [tid for _, tid in candidates],
-            model.decision_function([title for title, _ in candidates])
-        )), key=lambda x: -x[1])
+        scored_id = sorted(
+            list(
+                zip(
+                    [tid for _, tid in candidates],
+                    model.decision_function([title for title, _ in candidates]),
+                )
+            ),
+            key=lambda x: -x[1],
+        )
         recommendation_cache[user.id] = RecommendationRecord(
             [tid for tid, _ in scored_id if tid not in block_thread_ids]
         )
@@ -710,21 +810,29 @@ class RecommendImageList(APIView):
         recommendation = get_recommendations(request.user)
         page_size = int(request.query_params.get("n", "20"))
         page_id = int(request.query_params.get("p", "1"))
-        page_recommendation = recommendation[(page_id - 1) * page_size:page_id * page_size]
-        preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(page_recommendation)])
-        queryset = ImageList.objects.filter(pk__in=page_recommendation).order_by(preserved)
+        page_recommendation = recommendation[
+            (page_id - 1) * page_size : page_id * page_size
+        ]
+        preserved = Case(
+            *[When(pk=pk, then=pos) for pos, pk in enumerate(page_recommendation)]
+        )
+        queryset = ImageList.objects.filter(pk__in=page_recommendation).order_by(
+            preserved
+        )
         serialized_data = ImageListSerializer(queryset, many=True).data
         # Rank again by RecSys model
         Event.objects.create(
             user=request.user,
             event_type="impression",
             media_type="ImageList",
-            data=json.dumps(dict(
-                page_size=page_size,
-                page_id=page_id,
-                source="recommendation",
-                result=page_recommendation,
-            ))
+            data=json.dumps(
+                dict(
+                    page_size=page_size,
+                    page_id=page_id,
+                    source="recommendation",
+                    result=page_recommendation,
+                )
+            ),
         )
         return Response(serialized_data)
 
@@ -734,7 +842,9 @@ class StorageReport(APIView):
         minio_client = get_default_minio_client()
         rows = []
         with connection.cursor() as cursor:
-            cursor.execute(dedent(f"""
+            cursor.execute(
+                dedent(
+                    f"""
             SELECT
                    bucket,
                    object_name,
@@ -769,21 +879,26 @@ class StorageReport(APIView):
                 WHERE owner_id = 1
                   AND positive_reaction
             ) liked_novel ON data_novel.id = liked_novel.thread_id
-            """))
+            """
+                )
+            )
 
             for row in tqdm(cursor.fetchall()):
-                rows.append({
-                    "type": row[2],
-                    "liked": row[3],
-                    "bucket": row[0],
-                    "object_name": row[1],
-                    "size": minio_client.stat_object(row[0], row[1]).size,
-                })
-        df = (pandas.DataFrame(rows)
-              .groupby(by=["bucket", "type", "liked"])
-              .agg({"object_name": "count", "size": "sum"})
-              .reset_index()
-              .rename(columns={"object_name": "object_count"})
-              )
-        df["size_in_gb"] = df["size"] / (1024 ** 3)
+                rows.append(
+                    {
+                        "type": row[2],
+                        "liked": row[3],
+                        "bucket": row[0],
+                        "object_name": row[1],
+                        "size": minio_client.stat_object(row[0], row[1]).size,
+                    }
+                )
+        df = (
+            pandas.DataFrame(rows)
+            .groupby(by=["bucket", "type", "liked"])
+            .agg({"object_name": "count", "size": "sum"})
+            .reset_index()
+            .rename(columns={"object_name": "object_count"})
+        )
+        df["size_in_gb"] = df["size"] / (1024**3)
         return Response(df.to_dict())
