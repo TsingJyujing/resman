@@ -18,7 +18,7 @@ RUN rm -rf frontend
 
 FROM python:3.8-slim as BACKEND
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libmariadb-dev libpq-dev gcc g++ cmake build-essential && \
+    apt-get install -y --no-install-recommends libmariadb-dev libpq-dev gcc g++ cmake build-essential libmagic && \
     apt-get autoremove -y && \
     apt-get autoclean -y
 WORKDIR /app
