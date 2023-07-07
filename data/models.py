@@ -143,6 +143,7 @@ class BaseImage(models.Model):
 class BaseS3Object(models.Model):
     bucket = models.CharField(max_length=255, default=DEFAULT_S3_BUCKET)
     object_name = models.CharField(max_length=255)
+    size = models.BigIntegerField(null=True)
 
     def get_size(self) -> int:
         return get_size(self.bucket, self.object_name)

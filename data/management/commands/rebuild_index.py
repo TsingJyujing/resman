@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from tqdm import tqdm
 from whoosh import writing
 
-from data.models import ImageList, VideoList, Novel
+from data.models import ImageList, Novel, VideoList
 from utils.search_engine import WHOOSH_SEARCH_ENGINE
 
 
@@ -26,7 +26,9 @@ class Command(BaseCommand):
             model_class = Novel
         else:
             raise Exception(f"Do not support {index_type} yet")
-        index = search_engine.get_index(model_class.get_index_name(), model_class.get_schema())
+        index = search_engine.get_index(
+            model_class.get_index_name(), model_class.get_schema()
+        )
         with index.writer() as w:
             w.mergetype = writing.CLEAR
         with index.writer() as w:
